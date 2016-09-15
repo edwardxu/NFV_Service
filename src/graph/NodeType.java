@@ -1,0 +1,12 @@
+package graph;
+
+public enum NodeType {
+	DATACENTER(1111), WEBPORTAL(1112), 
+	VIRTUALDATACENTER(1113), VIRTUALSINKNODE(1114), VIRTUALWEBPORTAL(1115), VIRTUALACTIVESERVERS(1116), VIRTUALINACTIVESERVERS(1116),
+	CLUSTER(1117), MACHINE(1118);
+	private int value;
+	
+	private NodeType(int value) {
+		this.value = value;
+	}
+}
