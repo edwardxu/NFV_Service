@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
-//import algs.Heuristic;
 import system.InternetLink;
 import system.Request;
 import system.Switch;
@@ -19,18 +18,21 @@ public class SDNRoutingSimulator {
 	
 	private SimpleWeightedGraph<Node, InternetLink> network;
 
-	private ArrayList<Switch> switchesAttachedServers = null;
+	private ArrayList<Switch> switchesAttachedDataCenters = null;
 	
 	private ArrayList<Switch> switches = null;
 	
 	private ArrayList<Request> multicastRequests = null;
+	
+	private ArrayList<Request> unicastRequests = null;
 		
 	private FloydWarshallShortestPaths<Node, InternetLink> allPairShortestPath = null;
 	
 	public SDNRoutingSimulator() {
 		this.setSwitches(new ArrayList<Switch>());
-		this.setSwitchesAttachedServers(new ArrayList<Switch>());
+		this.setSwitchesAttachedDataCenters(new ArrayList<Switch>());
 		this.setMulticastRequests(new ArrayList<Request>());
+		this.setUnicastRequests(new ArrayList<Request>());
 	}
 		
 	public static void main(String[] s) {
@@ -115,7 +117,7 @@ public class SDNRoutingSimulator {
 			System.out.println("Max number of servers for each SC: " + maxNumServers[sizeI]);
 			Parameters.maxServersForEachSC = maxNumServers[sizeI];
 			
-			Initialization.initServers(simulator);
+			Initialization.initDataCenters(simulator);
 			Initialization.initEdgeWeights(simulator);
 			
 			for (int round = 0; round < numRound; round ++) {
@@ -218,7 +220,7 @@ public class SDNRoutingSimulator {
 			Parameters.maxNumDestinationsPerRequest = (int) (Parameters.maxDestinationPercentage * Parameters.numOfNodes);
 			Parameters.minNumDestinationsPerRequest = (int) (Parameters.minDestinationPercentage * Parameters.numOfNodes);
 			
-			Initialization.initServers(simulator);
+			Initialization.initDataCenters(simulator);
 			Initialization.initEdgeWeights(simulator);
 			
 			for (int round = 0; round < numRound; round ++) {
@@ -277,483 +279,6 @@ public class SDNRoutingSimulator {
 			String out = maxDestinationPercentages[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
-			
-			System.out.println(out);
-		}
-	}
-	
-	
-	public static void performanceHeuristic(String networkName) {
-		
-		int [] maxNumServers = {2, 3, 4, 5};// make sure total server number is larger than 8. 
-		
-		double [][][] aveCost = new double [maxNumServers.length][Parameters.numReqs][4];
-		double [][][] numReqsAdmitted = new double [maxNumServers.length][Parameters.numReqs][4];
-		//double [][][] aveRunningTime = new double [network_sizes.length][Parameters.numReqs][4];
-		//double [][] aveRatios = new double [network_sizes.length][4];
-		
-		int numAlgs = 2;
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			for (int k = 0; k < Parameters.numReqs; k ++){
-				for (int j = 0; j < numAlgs; j ++) {
-					aveCost[sizeI][k][j] = 0d;
-					numReqsAdmitted[sizeI][k][j] = 0;
-					//aveRunningTime[sizeI][k][j] = 0d;
-				//aveRatios[sizeI][j] = 0d;
-				}
-			}
-		}
-		
-		int numRound = 5;
-		
-		//changeNumOfNodes(network_sizes[sizeI]);
-		if (networkName.equals("GEANT"))
-			Parameters.numOfNodes = 40;
-		else if (networkName.equals("AS1755")){
-			Parameters.numOfNodes = 172;
-		} else if (networkName.equals("AS4755")){
-			Parameters.numOfNodes = 121;
-		}
-		
-		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
-		Parameters.maxNumDestinationsPerRequest = (int) (0.2 * Parameters.numOfNodes);
-		Parameters.minNumDestinationsPerRequest = (int) (0.1 * Parameters.numOfNodes);
-
-		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			
-			System.out.println("Max number of servers for each SC: " + maxNumServers[sizeI]);
-			Parameters.maxServersForEachSC = maxNumServers[sizeI];
-			
-			Initialization.initServers(simulator);
-			Initialization.initEdgeWeights(simulator);
-			
-			for (int round = 0; round < numRound; round ++) {
-				
-				System.out.println("Round : " + round);
-				
-				Initialization.initMulticastRequests(simulator, false);
-				
-				// online algorithm. 
-				OnlineHeu heuAlg = new OnlineHeu(simulator);
-				long startTime = System.currentTimeMillis();
-				heuAlg.run();				
-				long endTime   = System.currentTimeMillis();
-				long totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][0] += (heuAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][0] += (heuAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				//aveRunningTime[sizeI][0] += (totalTime / numRound);
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-				
-				// online benchmark;
-				
-				// online algorithm. 
-				OnlineBenchmark heuBenchmarkAlg = new OnlineBenchmark(simulator);
-				startTime = System.currentTimeMillis();
-				heuBenchmarkAlg.run();
-				endTime   = System.currentTimeMillis();
-				totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][1] += (heuBenchmarkAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][1] += (heuBenchmarkAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-			}
-		}
-		
-//		System.out.println("Average cost---------------------------------");
-//		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-//			String out = maxNumServers[sizeI] + " ";
-//			for (int j = 0; j < numAlgs; j ++)
-//				out += aveCost[sizeI][Parameters.numReqs - 1][j] + " ";
-//			
-//			System.out.println(out);
-//		}
-		
-		System.out.println("Num reqs admitted--------------------------");
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			String out = maxNumServers[sizeI] + " ";
-			for (int j = 0; j < numAlgs; j ++)
-				out += numReqsAdmitted[sizeI][Parameters.numReqs - 1][j] + " ";
-			
-			System.out.println(out);
-		}
-	}
-	
-	public static void performanceHeuristicNumReqs(String networkName) {
-		
-		int [] maxNumServers = {3};// make sure total server number is larger than 8. 
-		
-		double [][][] aveCost = new double [maxNumServers.length][Parameters.numReqs][4];
-		double [][][] numReqsAdmitted = new double [maxNumServers.length][Parameters.numReqs][4];
-		//double [][][] aveRunningTime = new double [network_sizes.length][Parameters.numReqs][4];
-		//double [][] aveRatios = new double [network_sizes.length][4];
-		
-		int numAlgs = 2;
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			for (int k = 0; k < Parameters.numReqs; k ++){
-				for (int j = 0; j < numAlgs; j ++) {
-					aveCost[sizeI][k][j] = 0d;
-					numReqsAdmitted[sizeI][k][j] = 0;
-					//aveRunningTime[sizeI][k][j] = 0d;
-				//aveRatios[sizeI][j] = 0d;
-				}
-			}
-		}
-		
-		int numRound = 5;
-		
-		//changeNumOfNodes(network_sizes[sizeI]);
-		if (networkName.equals("GEANT"))
-			Parameters.numOfNodes = 40;
-		else if (networkName.equals("AS1755")){
-			Parameters.numOfNodes = 172;
-		} else if (networkName.equals("AS4755")){
-			Parameters.numOfNodes = 121;
-		}
-		
-		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
-		Parameters.maxNumDestinationsPerRequest = (int) (0.2 * Parameters.numOfNodes);
-		Parameters.minNumDestinationsPerRequest = (int) (0.1 * Parameters.numOfNodes);
-
-		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			
-			System.out.println("Max number of servers for each SC: " + maxNumServers[sizeI]);
-			Parameters.maxServersForEachSC = maxNumServers[sizeI];
-			
-			Initialization.initServers(simulator);
-			Initialization.initEdgeWeights(simulator);
-			
-			for (int round = 0; round < numRound; round ++) {
-				
-				System.out.println("Round : " + round);
-				
-				Initialization.initMulticastRequests(simulator, false);
-				
-				// online algorithm. 
-				OnlineHeu heuAlg = new OnlineHeu(simulator);
-				long startTime = System.currentTimeMillis();
-				heuAlg.run();				
-				long endTime   = System.currentTimeMillis();
-				long totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][0] += (heuAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][0] += (heuAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				//aveRunningTime[sizeI][0] += (totalTime / numRound);
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-				
-				// online benchmark;
-				
-				// online algorithm. 
-				OnlineBenchmark heuBenchmarkAlg = new OnlineBenchmark(simulator);
-				startTime = System.currentTimeMillis();
-				heuBenchmarkAlg.run();
-				endTime   = System.currentTimeMillis();
-				totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][1] += (heuBenchmarkAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][1] += (heuBenchmarkAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-			}
-		}
-		
-//		System.out.println("Average cost---------------------------------");
-//		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-//			String out = maxNumServers[sizeI] + " ";
-//			for (int j = 0; j < numAlgs; j ++)
-//				out += aveCost[sizeI][Parameters.numReqs - 1][j] + " ";
-//			
-//			System.out.println(out);
-//		}
-		
-		System.out.println("Num reqs admitted--------------------------");
-		for (int t = 0; t < Parameters.numReqs; t ++) {
-			
-			if ((t % 50) != 0)
-				continue;
-			
-			String out = t + " ";
-			for (int j = 0; j < numAlgs; j ++)
-				out += numReqsAdmitted[0][t][j] + " ";
-			
-			System.out.println(out);
-		}
-	}
-
-	public static void performanceOnlineNumReqs(String networkName) {
-		
-		int [] maxNumServers = {3};// make sure total server number is larger than 8. 
-		
-		double [][][] aveCost = new double [maxNumServers.length][Parameters.numReqs][4];
-		double [][][] numReqsAdmitted = new double [maxNumServers.length][Parameters.numReqs][4];
-		//double [][][] aveRunningTime = new double [network_sizes.length][Parameters.numReqs][4];
-		//double [][] aveRatios = new double [network_sizes.length][4];
-		
-		int numAlgs = 2;
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			for (int k = 0; k < Parameters.numReqs; k ++){
-				for (int j = 0; j < numAlgs; j ++) {
-					aveCost[sizeI][k][j] = 0d;
-					numReqsAdmitted[sizeI][k][j] = 0;
-					//aveRunningTime[sizeI][k][j] = 0d;
-				//aveRatios[sizeI][j] = 0d;
-				}
-			}
-		}
-		
-		int numRound = 5;
-		
-		//changeNumOfNodes(network_sizes[sizeI]);
-		if (networkName.equals("GEANT"))
-			Parameters.numOfNodes = 40;
-		else if (networkName.equals("AS1755")){
-			Parameters.numOfNodes = 172;
-		} else if (networkName.equals("AS4755")){
-			Parameters.numOfNodes = 121;
-		}
-		
-		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
-		Parameters.maxNumDestinationsPerRequest = (int) (0.2 * Parameters.numOfNodes);
-		Parameters.minNumDestinationsPerRequest = (int) (0.1 * Parameters.numOfNodes);
-
-		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			
-			System.out.println("Max number of servers for each SC: " + maxNumServers[sizeI]);
-			Parameters.maxServersForEachSC = maxNumServers[sizeI];
-			
-			Initialization.initServers(simulator);
-			Initialization.initEdgeWeights(simulator);
-			
-			for (int round = 0; round < numRound; round ++) {
-				
-				System.out.println("Round : " + round);
-				
-				Initialization.initMulticastRequests(simulator, false);
-				
-				// online algorithm. 
-				Online onlineAlg = new Online(simulator, 1, 1);
-				long startTime = System.currentTimeMillis();
-				onlineAlg.run();				
-				long endTime   = System.currentTimeMillis();
-				long totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][0] += (onlineAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][0] += (onlineAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				//aveRunningTime[sizeI][0] += (totalTime / numRound);
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-				
-				// online benchmark;
-				
-				// online algorithm. 
-				OnlineBenchmark heuBenchmarkAlg = new OnlineBenchmark(simulator);
-				startTime = System.currentTimeMillis();
-				heuBenchmarkAlg.run();
-				endTime   = System.currentTimeMillis();
-				totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][1] += (heuBenchmarkAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][1] += (heuBenchmarkAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-			}
-		}
-		
-//		System.out.println("Average cost---------------------------------");
-//		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-//			String out = maxNumServers[sizeI] + " ";
-//			for (int j = 0; j < numAlgs; j ++)
-//				out += aveCost[sizeI][Parameters.numReqs - 1][j] + " ";
-//			
-//			System.out.println(out);
-//		}
-		
-		System.out.println("Num reqs admitted--------------------------");
-		for (int t = 0; t < Parameters.numReqs; t ++) {
-			
-			if ((t % 50) != 0)
-				continue;
-			
-			String out = t + " ";
-			for (int j = 0; j < numAlgs; j ++)
-				out += numReqsAdmitted[0][t][j] + " ";
-			
-			System.out.println(out);
-		}
-	}
-
-	
-
-	public static void performanceOnline(String networkName) {
-		
-		int [] maxNumServers = {2, 3, 4, 5};// make sure total server number is larger than 8. 
-		
-		double [][][] aveCost = new double [maxNumServers.length][Parameters.numReqs][4];
-		double [][][] numReqsAdmitted = new double [maxNumServers.length][Parameters.numReqs][4];
-		//double [][][] aveRunningTime = new double [network_sizes.length][Parameters.numReqs][4];
-		//double [][] aveRatios = new double [network_sizes.length][4];
-		
-		int numAlgs = 2;
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			for (int k = 0; k < Parameters.numReqs; k ++){
-				for (int j = 0; j < numAlgs; j ++) {
-					aveCost[sizeI][k][j] = 0d;
-					numReqsAdmitted[sizeI][k][j] = 0;
-					//aveRunningTime[sizeI][k][j] = 0d;
-				//aveRatios[sizeI][j] = 0d;
-				}
-			}
-		}
-		
-		int numRound = 5;
-		
-		//changeNumOfNodes(network_sizes[sizeI]);
-		if (networkName.equals("GEANT"))
-			Parameters.numOfNodes = 40;
-		else if (networkName.equals("AS1755")){
-			Parameters.numOfNodes = 172;
-		} else if (networkName.equals("AS4755")){
-			Parameters.numOfNodes = 121;
-		}
-		
-		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
-		Parameters.maxNumDestinationsPerRequest = (int) (0.2 * Parameters.numOfNodes);
-		Parameters.minNumDestinationsPerRequest = (int) (0.1 * Parameters.numOfNodes);
-
-		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
-		
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			
-			System.out.println("Max number of servers for each SC: " + maxNumServers[sizeI]);
-			Parameters.maxServersForEachSC = maxNumServers[sizeI];
-			
-			Initialization.initServers(simulator);
-			Initialization.initEdgeWeights(simulator);
-			
-			for (int round = 0; round < numRound; round ++) {
-				
-				System.out.println("Round : " + round);
-				
-				Initialization.initMulticastRequests(simulator, false);
-				
-				// online algorithm. 
-				Online onlineAlg = new Online(simulator, 1, 1);
-				long startTime = System.currentTimeMillis();
-				onlineAlg.run();				
-				long endTime   = System.currentTimeMillis();
-				long totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][0] += (onlineAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][0] += (onlineAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				//aveRunningTime[sizeI][0] += (totalTime / numRound);
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-				
-				// online benchmark;
-				OnlineBenchmark heuBenchmarkAlg = new OnlineBenchmark(simulator);
-				startTime = System.currentTimeMillis();
-				heuBenchmarkAlg.run();				
-				endTime   = System.currentTimeMillis();
-				totalTime = endTime - startTime;
-				
-				for (int k = 0; k < Parameters.numReqs; k ++) {
-					aveCost[sizeI][k][1] += (heuBenchmarkAlg.getAccumulativeCost().get(k) / numRound);
-					numReqsAdmitted[sizeI][k][1] += (heuBenchmarkAlg.getNumOfAdmittedReqs().get(k) / numRound);
-				}
-				
-				// reset 
-				for (Switch sw : simulator.getSwitches())
-					sw.reset();
-				
-				for (InternetLink il : simulator.getNetwork().edgeSet())
-					il.reset();
-			}
-		}
-		
-//		System.out.println("Average cost---------------------------------");
-//		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-//			String out = maxNumServers[sizeI] + " ";
-//			for (int j = 0; j < numAlgs; j ++)
-//				out += aveCost[sizeI][j] + " ";
-//			
-//			System.out.println(out);
-//		}
-		
-		System.out.println("Num of requests admitted--------------------------");
-		for (int sizeI = 0; sizeI < maxNumServers.length; sizeI ++) {
-			String out = maxNumServers[sizeI] + " ";
-			for (int j = 0; j < numAlgs; j ++)
-				out += numReqsAdmitted[sizeI][Parameters.numReqs - 1][j] + " ";
 			
 			System.out.println(out);
 		}
@@ -1609,14 +1134,6 @@ public class SDNRoutingSimulator {
 		return shortestPathLength;
 	}
 
-	public ArrayList<Switch> getSwitchesAttachedServers() {
-		return switchesAttachedServers;
-	}
-
-	public void setSwitchesAttachedServers(ArrayList<Switch> switchesAttachedServers) {
-		this.switchesAttachedServers = switchesAttachedServers;
-	}
-
 	public ArrayList<Switch> getSwitches() {
 		return switches;
 	}
@@ -1631,5 +1148,21 @@ public class SDNRoutingSimulator {
 
 	public void setMulticastRequests(ArrayList<Request> multicastRequests) {
 		this.multicastRequests = multicastRequests;
+	}
+
+	public ArrayList<Switch> getSwitchesAttachedDataCenters() {
+		return switchesAttachedDataCenters;
+	}
+
+	public void setSwitchesAttachedDataCenters(ArrayList<Switch> switchesAttachedDataCenters) {
+		this.switchesAttachedDataCenters = switchesAttachedDataCenters;
+	}
+
+	public ArrayList<Request> getUnicastRequests() {
+		return unicastRequests;
+	}
+
+	public void setUnicastRequests(ArrayList<Request> unicastRequests) {
+		this.unicastRequests = unicastRequests;
 	}
 }

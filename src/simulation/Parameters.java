@@ -26,16 +26,16 @@ public class Parameters {
 	/*********************************Requests************************************/
 	public static int numReqs = 1000; //20000;
 	
+	public static int minDelayRequirement = 10; //ms
+	public static int maxDelayRequirement = 50; //ms
+	
+	public static double minDataRate = 50; // packets per second
+	public static double maxDataRate = 200;
+	
 	public static double maxDestinationPercentage = 0.2;
 	public static double minDestinationPercentage = 0.04;
 	public static int maxNumDestinationsPerRequest = (int) (maxDestinationPercentage * numOfNodes);
-	public static int minNumDestinationsPerRequest = (int) (maxDestinationPercentage * numOfNodes);
-	
-	public static double maxComputingDemandsSC = 100;// MHz, to be reset 
-	public static double minComputingDemandsSC = 10;// MHz, to be reset
-	
-	public static double maxBandwidthDemands = 200;//Mbps TODO: be reset approximation 200
-	public static double minBandwidthDemands = 50;//Mbps approximation 50
+	public static int minNumDestinationsPerRequest = (int) (maxDestinationPercentage * numOfNodes);	
 	
 	/*********************************Service chains************************************/
 	//public static int numOfServiceChainTypes = 10;

@@ -10,7 +10,6 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 import system.InternetLink;
 import system.Request;
 import system.DataCenter;
-import system.ServiceChain;
 import system.Switch;
 import system.generate.NetworkGenerator;
 import utils.RanNum;
@@ -55,21 +54,20 @@ public class Initialization {
 	
 	public static void initDataCenters(SDNRoutingSimulator simulator) {
 		
-		if (!simulator.getSwitchesAttachedServers().isEmpty())
-			simulator.getSwitchesAttachedServers().clear();
+		if (!simulator.getSwitchesAttachedDataCenters().isEmpty())
+			simulator.getSwitchesAttachedDataCenters().clear();
 		
 		SimpleWeightedGraph<Node, InternetLink> network = simulator.getNetwork();
 		// put servers at the nodes with the top-K degrees. 
-		PlacementAlgs placeServers = new PlacementAlgs(PlacementAlgs.TOP_DEGREE, network);	
-		ArrayList<Node> switchesWithServers = placeServers.getNodesWithServers();
+		PlacementAlgs placeDataCenters = new PlacementAlgs(PlacementAlgs.TOP_DEGREE, network);	
+		ArrayList<Node> switchesWithDCs = placeDataCenters.getNodesWithServers();
 		
-		for (Node node : switchesWithServers) {
+		for (Node node : switchesWithDCs) {
 			Switch sw = (Switch) node;
 			// initialize the server randomly. 
-			DataCenter server = new DataCenter(simulator.idAllocator.nextId(), "Server", RanNum.getRandomDoubleRange(Parameters.MaxCPUCapPerServer, Parameters.MinCPUCapPerServer));
-			sw.setAttachedServer(server);
-			
-			simulator.getSwitchesAttachedServers().add(sw);
+			DataCenter dc = new DataCenter(SDNRoutingSimulator.idAllocator.nextId(), "Data Center");
+			sw.setAttachedServer(dc);
+			simulator.getSwitchesAttachedDataCenters().add(sw);
 		}
 	}
 	
@@ -100,13 +98,13 @@ public class Initialization {
 				for (Integer desSwitchIndex : destinationIndexes)
 					desSwitches.add(simulator.getSwitches().get(desSwitchIndex));
 				
-				// Step 3: initialize the service chain of this multicast request. 
-				double scID = SDNRoutingSimulator.idAllocator.nextId();
-				ServiceChain serviceChain = new ServiceChain(scID, "Switch: " + scID, RanNum.getRandomDoubleRange(Parameters.maxComputingDemandsSC, Parameters.minComputingDemandsSC));
+				// Step 3: generate the service chain type, data rate, delay requirement of this request
+				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
+				double dataRate = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
 				
 				// Step 4L randomly generate the bandwidth resource demand of this request
-				double bandwidthDemands = RanNum.getRandomDoubleRange(Parameters.maxBandwidthDemands, Parameters.minBandwidthDemands);
-				Request multicastReq = new Request(SDNRoutingSimulator.idAllocator.nextId(), sourceSwitch, desSwitches, bandwidthDemands, serviceChain);
+				Request multicastReq = new Request(SDNRoutingSimulator.idAllocator.nextId(), sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
 				reqs.add(multicastReq);
 			} else {
 				// TODO initialize each multicast request from real data. 
@@ -114,4 +112,39 @@ public class Initialization {
 		}
 	}
 	
+	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata) {
+		ArrayList<Request> reqs = simulator.getMulticastRequests();
+		
+		if (!reqs.isEmpty())
+			reqs.clear();
+		
+		for(int i = 0; i < Parameters.numReqs; i ++) {
+			// initialize each multicast request.	
+			if(!realdata){
+				// Step 1: random select destination switches for this request.
+				int numOfDestinations = 1;
+				ArrayList<Integer> destinationIndexes = RanNum.getDistinctInts(simulator.getSwitches().size(), 0, numOfDestinations);
+				// Step 2: random select source switch for this request. 
+				int sourceIndex = RanNum.getRandomIntRange(simulator.getSwitches().size(), 0);
+				while(destinationIndexes.contains(sourceIndex))
+					sourceIndex = RanNum.getRandomIntRange(simulator.getSwitches().size(), 0);
+				
+				Switch sourceSwitch = simulator.getSwitches().get(sourceIndex);
+				ArrayList<Switch> desSwitches = new ArrayList<Switch>();
+				for (Integer desSwitchIndex : destinationIndexes)
+					desSwitches.add(simulator.getSwitches().get(desSwitchIndex));
+				
+				// Step 3: generate the service chain type, data rate, delay requirement of this request
+				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
+				double dataRate = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+				
+				// Step 4L randomly generate the bandwidth resource demand of this request
+				Request multicastReq = new Request(SDNRoutingSimulator.idAllocator.nextId(), sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
+				reqs.add(multicastReq);
+			} else {
+				// TODO initialize each multicast request from real data. 
+			}
+		}
+	}
 }

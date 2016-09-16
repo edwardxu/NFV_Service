@@ -14,6 +14,12 @@ public class ServiceChain extends Node {
 	
 	public ServiceChain(double id, String name) {
 		super(id, name);
+		
+		// randomly generate the service chain type
+		this.setServiceChainType(RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0));
+		double minProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][0];
+		double maxProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][1];
+		this.setProcessingCapacity(RanNum.getRandomDoubleRange(maxProcessingCapacity, minProcessingCapacity));
 	}
 	
 	public ServiceChain(double id, String name, int serviceChainType){

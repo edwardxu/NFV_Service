@@ -18,7 +18,8 @@ public class Request {
 	
 	private double dataRate = 0d;
 		
-	public Request(double id, Switch sourceSwitch, Switch destinationSwitch, ArrayList<Switch> destinationSwitches, double dataRate, int serviceChainType, double delayRequirement){
+	public Request(double id, Switch sourceSwitch, ArrayList<Switch> destinationSwitches, 
+			double dataRate, int serviceChainType, double delayRequirement){
 		this.setID(id);
 		this.setSourceSwitch(sourceSwitch);
 		this.setDestinationSwitches(destinationSwitches);
