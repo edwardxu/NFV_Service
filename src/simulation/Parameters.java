@@ -4,22 +4,19 @@ public class Parameters {
 		
 	/*********************************Networks************************************/
 	public static int numOfNodes = 100;
+		
+	public static double maxLinkCost = 0.12 / 16384;// to be reset
+	public static double minLinkCost = 0.05 / 16384;// to be reset
 	
-	public static double maxLinkCapacity = 10000;// 10000 Mbps
-	public static double minLinkCapacity = 1000; // 1000 Mbps
+	public static double maxLinkDelay = 5; //ms
+	public static double minLinkDelay = 1; //ms 
 	
-	public static double maxLinkCost = 1;// to be reset
-	public static double minLinkCost = 1;// to be reset
-	
-	public static double maxLinkDelay = 5; //ms to be reset
-	public static double minLinkDelay = 1; //ms to be reset. 
-	
-	/*********************************Server************************************/
+	/*********************************Data Center************************************/
 	public static double ServerToNodeRatio = 0.1;//0.1
 	
 	public static int K = (int) (numOfNodes * ServerToNodeRatio);
 	
-	public static int K_small = 9; // in geant toplogy. 
+	public static int K_small = 9; // in geant toplogy.
 	
 	public static int maxServersForEachSC = 3; // may vary from 2, 4, 6, 8
 	
@@ -27,10 +24,10 @@ public class Parameters {
 	public static int numReqs = 1000; //20000;
 	
 	public static int minDelayRequirement = 10; //ms
-	public static int maxDelayRequirement = 50; //ms
+	public static int maxDelayRequirement = 100; //ms
 	
-	public static double minDataRate = 50; // packets per second
-	public static double maxDataRate = 200;
+	public static double minDataRate = 1000; // packets per second
+	public static double maxDataRate = 4000;
 	
 	public static double maxDestinationPercentage = 0.2;
 	public static double minDestinationPercentage = 0.04;
@@ -40,13 +37,13 @@ public class Parameters {
 	/*********************************Service chains************************************/
 	//public static int numOfServiceChainTypes = 10;
 	
-	public static double minServiceChainCost = 0.1;// to be reset
-	public static double maxServiceChainCost = 1;// to be reset
+	public static double minServiceChainCost = 0.22 / 16384;// to be reset
+	public static double maxServiceChainCost = 0.15 / 16384;// to be reset
 	
-	public static double [][] serviceChainProcessingDelays = {{2, 3}, {4, 5}, {6, 9}, {10, 12}, {12, 15}};// ms
+	public static double [][] serviceChainProcessingDelays = {{0.045, 0.3}, {0.09, 0.6}, {0.135, 0.9}, {0.18, 1.2}, {0.225, 1.5}};// ms
 	
-	public static double [][] serviceChainProcessingCapacities = {{200, 300}, {400, 500}, {600, 900}, {1000, 1200}, {1200, 1500}};// packets per second. to be reset. 
+	public static double [][] serviceChainProcessingCapacities = {{3000, 20000}, {1500, 10000}, {1100, 5500}, {800, 5000}, {500, 4000}};// packets per second. to be reset. 
 	
-	public static int maxNumOfInstances = 100; 
+	public static int maxNumOfInstances = 100;
 	public static int minNumOfInstances = 10; 
 }

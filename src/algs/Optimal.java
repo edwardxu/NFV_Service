@@ -31,13 +31,11 @@ private SDNRoutingSimulator simulator = null;
 	}
 	
 	public void run() {
-		// the optimal algorithm. 
-		
+		// the optimal algorithm.
 		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		
 		double approCost = 0d;
-		int numAdmitted = 0; 
-			
+		int numAdmitted = 0;
 	}
 	
 	private SimpleDirectedWeightedGraph<Node, InternetLink> constructAuxiliaryGraph(
