@@ -92,7 +92,7 @@ public class SDNRoutingSimulator {
 				Initialization.initUnicastRequests(simulator, false, true);
 				
 				// optimal solution for the problem with identical data rates. 
-				Optimal optimalAlg = new Optimal(simulator);
+				Optimal optimalAlg = new Optimal(simulator, simulator.getUnicastRequests());
 				long startTime = System.currentTimeMillis();
 				optimalAlg.run();			
 				long endTime   = System.currentTimeMillis();

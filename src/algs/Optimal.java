@@ -23,14 +23,17 @@ public class Optimal {
 
 	private SDNRoutingSimulator simulator = null;
 	
+	private ArrayList<Request> requests = null; 
+	
 	private double totalCost = 0d;
 	
 	private double averageCost = 0d; 
 	
 	private int numOfAdmittedReqs = 0;
 	
-	public Optimal(SDNRoutingSimulator sim) {
-		this.simulator = sim;		
+	public Optimal(SDNRoutingSimulator sim, ArrayList<Request> requests) {
+		this.simulator = sim;	
+		this.requests = requests;
 	}
 	
 	public void run() {
@@ -42,8 +45,8 @@ public class Optimal {
 		ArrayList<Node> dummyNodesXSet = new ArrayList<Node>();
 		ArrayList<Node> dummyNodesYSet = new ArrayList<Node>();
 
-		SimpleWeightedGraph<Node, InternetLink> bipartiteGraph = constructAuxiliaryGraph(this.simulator.getUnicastRequests(), 
-				originalGraph, this.simulator.getSwitchesAttachedDataCenters(), this.simulator.getUnicastRequests().get(0).getDataRate(), XSet, YSet, dummyNodesXSet, dummyNodesYSet);
+		SimpleWeightedGraph<Node, InternetLink> bipartiteGraph = constructAuxiliaryGraph(this.requests, 
+				originalGraph, this.simulator.getSwitchesAttachedDataCenters(), this.requests.get(0).getDataRate(), XSet, YSet, dummyNodesXSet, dummyNodesYSet);
 		
 		KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink> perfectMatching = new KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink>(bipartiteGraph, XSet, YSet);
 		Set<InternetLink> matching = perfectMatching.getMatching();
