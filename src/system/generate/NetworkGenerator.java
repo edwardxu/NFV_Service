@@ -27,13 +27,11 @@ import org.jgrapht.Graph;
 import org.jgrapht.VertexFactory;
 import org.jgrapht.generate.GraphGenerator;
 
-import simulation.Parameters;
 import graph.Node;
 import graph.NodeFactory;
 import graph.NodeInitialParameters;
 import system.InternetLink;
 import system.LinkInitialParameters;
-import utils.RanNum;
 
 public class NetworkGenerator<V, E> implements GraphGenerator<V, E, V> {
 	// ~ Instance fields
@@ -132,7 +130,7 @@ public class NetworkGenerator<V, E> implements GraphGenerator<V, E, V> {
 						V toNode = null;
 						
 						LinkInitialParameters li = new LinkInitialParameters();
-						li.capacity = RanNum.getRandomDoubleRange(Parameters.maxLinkCapacity, Parameters.minLinkCapacity);
+						//li.capacity = RanNum.getRandomDoubleRange(Parameters.maxLinkCapacity, Parameters.minLinkCapacity);
 						
 						for (V node : nodeList) {
 							if (node instanceof Node) {

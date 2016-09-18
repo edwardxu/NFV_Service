@@ -113,7 +113,7 @@ public class Initialization {
 	}
 	
 	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata) {
-		ArrayList<Request> reqs = simulator.getMulticastRequests();
+		ArrayList<Request> reqs = simulator.getUnicastRequests();
 		
 		if (!reqs.isEmpty())
 			reqs.clear();

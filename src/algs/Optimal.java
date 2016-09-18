@@ -16,26 +16,31 @@ import system.Switch;
 
 public class Optimal {
 
-private SDNRoutingSimulator simulator = null;
+	private SDNRoutingSimulator simulator = null;
 	
-	private ArrayList<Double> accumulativeCost = null;
+	private double totalCost = 0d;
 	
-	private ArrayList<Integer> numOfAdmittedReqs = null;
+	private double averageCost = 0d; 
+	
+	private int numOfAdmittedReqs = 0;
 	
 	public Optimal(SDNRoutingSimulator sim) {
-		this.simulator = sim;
-		// set alpha and beta
-		
-		this.setAccumulativeCost(new ArrayList<Double>(sim.getMulticastRequests().size()));
-		this.setNumOfAdmittedReqs(new ArrayList<Integer>(sim.getMulticastRequests().size()));
+		this.simulator = sim;		
 	}
 	
 	public void run() {
 		// the optimal algorithm.
 		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		
-		double approCost = 0d;
+		double cost = 0d;
 		int numAdmitted = 0;
+		
+		for (Request req : this.simulator.getUnicastRequests()){
+			// admit this request or not
+			
+			
+		}
+		
 	}
 	
 	private SimpleDirectedWeightedGraph<Node, InternetLink> constructAuxiliaryGraph(
@@ -58,19 +63,27 @@ private SDNRoutingSimulator simulator = null;
 		return auxiliaryGraph; 
 	}
 
-	public ArrayList<Double> getAccumulativeCost() {
-		return accumulativeCost;
+	public double getTotalCost() {
+		return totalCost;
 	}
 
-	public void setAccumulativeCost(ArrayList<Double> accumulativeCost) {
-		this.accumulativeCost = accumulativeCost;
+	public void setTotalCost(double totalCost) {
+		this.totalCost = totalCost;
 	}
 
-	public ArrayList<Integer> getNumOfAdmittedReqs() {
+	public double getAverageCost() {
+		return averageCost;
+	}
+
+	public void setAverageCost(double averageCost) {
+		this.averageCost = averageCost;
+	}
+
+	public int getNumOfAdmittedReqs() {
 		return numOfAdmittedReqs;
 	}
 
-	public void setNumOfAdmittedReqs(ArrayList<Integer> numOfAdmittedReqs) {
+	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
 	}
 }
