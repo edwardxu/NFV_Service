@@ -35,6 +35,7 @@ public class DataCenter extends Node {
 			for (int j = 0; j < numOfInstances; j ++){
 				double SCID = SDNRoutingSimulator.idAllocator.nextId(); 
 				ServiceChain sc = new ServiceChain(SCID, "Service Chain: " + SCID, i);
+				sc.setHomeDataCenter(this);
 				if (null == this.getServiceChains().get(i))
 					this.getServiceChains().put(i, new HashSet<ServiceChain>());
 				this.getServiceChains().get(i).add(sc);

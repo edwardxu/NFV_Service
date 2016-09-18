@@ -37,7 +37,6 @@ public class SDNRoutingSimulator {
 	}
 		
 	public static void main(String[] s) {
-		
 		performanceOptimal("GEANT");// (4)
 		//performanceHeuristicNumReqs("GEANT");
 		//performanceHeuristicNumReqs("AS1755");
@@ -90,12 +89,12 @@ public class SDNRoutingSimulator {
 				
 				System.out.println("Round : " + round);
 				
-				Initialization.initUnicastRequests(simulator, false);
+				Initialization.initUnicastRequests(simulator, false, true);
 				
-				// approximation algorithm. 
+				// optimal solution for the problem with identical data rates. 
 				Optimal optimalAlg = new Optimal(simulator);
 				long startTime = System.currentTimeMillis();
-				optimalAlg.run();				
+				optimalAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				

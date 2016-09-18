@@ -3,9 +3,12 @@ package system;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Request {
+import graph.Node;
+import simulation.SDNRoutingSimulator;
+
+public class Request extends Node {
 	
-	private double ID;
+	//private double ID;
 	
 	private Switch sourceSwitch = null;
 	
@@ -17,10 +20,31 @@ public class Request {
 	private double delayRequirement = 0d;//
 	
 	private double dataRate = 0d;
-		
-	public Request(double id, Switch sourceSwitch, ArrayList<Switch> destinationSwitches, 
+	
+	private Request parent = null;
+	
+	private boolean isDummy = false; 
+	
+	// create a virtual request, please note that this is not a clone constructor. 
+	public Request(Request parent, double dataRate) {
+		super(SDNRoutingSimulator.idAllocator.nextId(), "Virtual Request");
+		this.parent = parent;
+		this.dataRate = dataRate;
+		this.sourceSwitch = parent.getSourceSwitch();
+		this.destinationSwitches = parent.getDestinationSwitches();
+		this.delayRequirement = parent.getDelayRequirement(); 
+		this.serviceChainType = parent.getServiceChainType();
+	}
+	
+	// create a dummy request node. 
+	public Request() {
+		super(SDNRoutingSimulator.idAllocator.nextId(), "Dummy Request");
+		this.setDummy(true);
+	}
+	
+	public Request(Switch sourceSwitch, ArrayList<Switch> destinationSwitches, 
 			double dataRate, int serviceChainType, double delayRequirement){
-		this.setID(id);
+		super(SDNRoutingSimulator.idAllocator.nextId(), "Request");
 		this.setSourceSwitch(sourceSwitch);
 		this.setDestinationSwitches(destinationSwitches);
 		this.setDataRate(dataRate); 
@@ -83,14 +107,6 @@ public class Request {
 			return false;
 	}
 
-	public double getID() {
-		return ID;
-	}
-
-	public void setID(double iD) {
-		ID = iD;
-	}
-
 	public int getServiceChainType() {
 		return serviceChainType;
 	}
@@ -113,5 +129,21 @@ public class Request {
 
 	public void setDataRate(double dataRate) {
 		this.dataRate = dataRate;
+	}
+
+	public Request getParent() {
+		return parent;
+	}
+
+	public void setParent(Request parent) {
+		this.parent = parent;
+	}
+
+	public boolean isDummy() {
+		return isDummy;
+	}
+
+	public void setDummy(boolean isDummy) {
+		this.isDummy = isDummy;
 	}
 }

@@ -26,7 +26,7 @@ public class Parameters {
 	public static int minDelayRequirement = 10; //ms
 	public static int maxDelayRequirement = 100; //ms
 	
-	public static double minDataRate = 1000; // packets per second
+	public static double minDataRate = 400; // packets per second
 	public static double maxDataRate = 4000;
 	
 	public static double maxDestinationPercentage = 0.2;
@@ -45,5 +45,5 @@ public class Parameters {
 	public static double [][] serviceChainProcessingCapacities = {{3000, 20000}, {1500, 10000}, {1100, 5500}, {800, 5000}, {500, 4000}};// packets per second. to be reset. 
 	
 	public static int maxNumOfInstances = 100;
-	public static int minNumOfInstances = 10; 
+	public static int minNumOfInstances = 10;
 }

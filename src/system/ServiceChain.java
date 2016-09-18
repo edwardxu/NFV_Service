@@ -12,6 +12,10 @@ public class ServiceChain extends Node {
 	
 	private double computingResourceDemand = 0d;
 	
+	private ServiceChain parent = null;
+	
+	private DataCenter homeDataCenter = null; 
+	
 	public ServiceChain(double id, String name) {
 		super(id, name);
 		
@@ -20,6 +24,13 @@ public class ServiceChain extends Node {
 		double minProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][0];
 		double maxProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][1];
 		this.setProcessingCapacity(RanNum.getRandomDoubleRange(maxProcessingCapacity, minProcessingCapacity));
+	}
+	
+	public ServiceChain(double id, String name, ServiceChain parent, double processingCapacity){
+		super(id, name);
+		this.setParent(parent);
+		this.serviceChainType = parent.getServiceChainType();
+		this.processingCapacity = processingCapacity;
 	}
 	
 	public ServiceChain(double id, String name, int serviceChainType){
@@ -60,5 +71,21 @@ public class ServiceChain extends Node {
 
 	public void setServiceChainType(int serviceChainType) {
 		this.serviceChainType = serviceChainType;
+	}
+
+	public ServiceChain getParent() {
+		return parent;
+	}
+
+	public void setParent(ServiceChain parent) {
+		this.parent = parent;
+	}
+
+	public DataCenter getHomeDataCenter() {
+		return homeDataCenter;
+	}
+
+	public void setHomeDataCenter(DataCenter homeDataCenter) {
+		this.homeDataCenter = homeDataCenter;
 	}
 }

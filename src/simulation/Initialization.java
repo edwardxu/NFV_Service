@@ -104,7 +104,7 @@ public class Initialization {
 				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
 				
 				// Step 4L randomly generate the bandwidth resource demand of this request
-				Request multicastReq = new Request(SDNRoutingSimulator.idAllocator.nextId(), sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
+				Request multicastReq = new Request(sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
 				reqs.add(multicastReq);
 			} else {
 				// TODO initialize each multicast request from real data. 
@@ -112,13 +112,17 @@ public class Initialization {
 		}
 	}
 	
-	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata) {
+	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata, boolean underIdenticalDataRate) {
 		ArrayList<Request> reqs = simulator.getUnicastRequests();
 		
 		if (!reqs.isEmpty())
 			reqs.clear();
-		
-		for(int i = 0; i < Parameters.numReqs; i ++) {
+
+		double identicalDataRate = 0d; 
+		if (underIdenticalDataRate)
+			identicalDataRate = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+
+		for (int i = 0; i < Parameters.numReqs; i ++) {
 			// initialize each multicast request.	
 			if(!realdata){
 				// Step 1: random select destination switches for this request.
@@ -136,15 +140,36 @@ public class Initialization {
 				
 				// Step 3: generate the service chain type, data rate, delay requirement of this request
 				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
-				double dataRate = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
-				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+				double dataRate = 0d;
+				if (underIdenticalDataRate)
+					dataRate = identicalDataRate;
+				else
+					dataRate = Parameters.minDataRate * RanNum.getRandomIntRange((int) (Parameters.maxDataRate/Parameters.minDataRate), 1);
+				
+				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDelayRequirement, Parameters.minDelayRequirement);
 				
 				// Step 4L randomly generate the bandwidth resource demand of this request
-				Request multicastReq = new Request(SDNRoutingSimulator.idAllocator.nextId(), sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
+				Request multicastReq = new Request(sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
 				reqs.add(multicastReq);
 			} else {
-				// TODO initialize each multicast request from real data. 
+				// TODO initialize each unicast request from real data. 
 			}
 		}
+	}
+	
+	/**
+	 * transform each request into several virtual requests with each having an identical data rate. 
+	 * */
+	public static ArrayList<Request> generateVirtualRequests(ArrayList<Request> requests){
+		ArrayList<Request> virtualRequests = new ArrayList<Request>();
+		// the minimum data rate should be "Parameters.minDataRate"
+		for (Request req : requests) {
+			int numOfVirtualRequests = (int) (req.getDataRate()/Parameters.minDataRate);
+			for (int i = 0; i < numOfVirtualRequests; i ++){
+				Request vReq = new Request(req, Parameters.minDataRate);
+				virtualRequests.add(vReq);
+			}
+		}		
+		return virtualRequests;
 	}
 }
