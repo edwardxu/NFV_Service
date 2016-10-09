@@ -52,7 +52,7 @@ public class Initialization {
 		}
 	}
 	
-	public static void initDataCenters(SDNRoutingSimulator simulator) {
+	public static void initDataCenters(SDNRoutingSimulator simulator, boolean serviceChainsWithBasicRate) {
 		
 		if (!simulator.getSwitchesAttachedDataCenters().isEmpty())
 			simulator.getSwitchesAttachedDataCenters().clear();
@@ -65,7 +65,8 @@ public class Initialization {
 		for (Node node : switchesWithDCs) {
 			Switch sw = (Switch) node;
 			// initialize the server randomly. 
-			DataCenter dc = new DataCenter(SDNRoutingSimulator.idAllocator.nextId(), "Data Center");
+			DataCenter dc = new DataCenter(SDNRoutingSimulator.idAllocator.nextId(), "Data Center", serviceChainsWithBasicRate);
+			dc.setAttachedSwitch(sw);
 			sw.setAttachedServer(dc);
 			simulator.getSwitchesAttachedDataCenters().add(sw);
 		}
@@ -100,8 +101,8 @@ public class Initialization {
 				
 				// Step 3: generate the service chain type, data rate, delay requirement of this request
 				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
-				double dataRate = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
-				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+				double dataRate = RanNum.getRandomDoubleRange(Parameters.maxPacketRate, Parameters.minPacketRate);
+				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxPacketRate, Parameters.minPacketRate);
 				
 				// Step 4L randomly generate the bandwidth resource demand of this request
 				Request multicastReq = new Request(sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
@@ -112,15 +113,17 @@ public class Initialization {
 		}
 	}
 	
-	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata, boolean underIdenticalDataRate) {
+	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata, boolean underBasicPacketRate, boolean underIdenticalPacketRate) {
 		ArrayList<Request> reqs = simulator.getUnicastRequests();
 		
 		if (!reqs.isEmpty())
 			reqs.clear();
 
 		double identicalDataRate = 0d; 
-		if (underIdenticalDataRate)
-			identicalDataRate = RanNum.getRandomDoubleRange(Parameters.maxDataRate, Parameters.minDataRate);
+		if (underBasicPacketRate && underIdenticalPacketRate)
+			identicalDataRate = Parameters.minPacketRate;//RanNum.getRandomDoubleRange(Parameters.maxPacketRate, Parameters.minPacketRate);
+		else if (!underBasicPacketRate && underIdenticalPacketRate)
+			identicalDataRate = RanNum.getRandomDoubleRange(Parameters.maxPacketRate, Parameters.minPacketRate);
 
 		for (int i = 0; i < Parameters.numReqs; i ++) {
 			// initialize each multicast request.	
@@ -141,10 +144,10 @@ public class Initialization {
 				// Step 3: generate the service chain type, data rate, delay requirement of this request
 				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
 				double dataRate = 0d;
-				if (underIdenticalDataRate)
+				if (underBasicPacketRate)
 					dataRate = identicalDataRate;
 				else
-					dataRate = Parameters.minDataRate * RanNum.getRandomIntRange((int) (Parameters.maxDataRate/Parameters.minDataRate), 1);
+					dataRate = Parameters.minPacketRate * RanNum.getRandomIntRange((int) (Parameters.maxPacketRate/Parameters.minPacketRate), 1);
 				
 				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDelayRequirement, Parameters.minDelayRequirement);
 				
@@ -164,9 +167,9 @@ public class Initialization {
 		ArrayList<Request> virtualRequests = new ArrayList<Request>();
 		// the minimum data rate should be "Parameters.minDataRate"
 		for (Request req : requests) {
-			int numOfVirtualRequests = (int) (req.getDataRate()/Parameters.minDataRate);
+			int numOfVirtualRequests = (int) (req.getPacketRate()/Parameters.minPacketRate);
 			for (int i = 0; i < numOfVirtualRequests; i ++){
-				Request vReq = new Request(req, Parameters.minDataRate);
+				Request vReq = new Request(req, Parameters.minPacketRate);
 				virtualRequests.add(vReq);
 			}
 		}		

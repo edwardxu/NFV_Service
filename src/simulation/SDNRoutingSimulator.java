@@ -82,14 +82,14 @@ public class SDNRoutingSimulator {
 			Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			Parameters.numReqs = numOfReqs[sizeI];
 			
-			Initialization.initDataCenters(simulator);
+			Initialization.initDataCenters(simulator, true);
 			Initialization.initEdgeWeights(simulator);
 			
 			for (int round = 0; round < numRound; round ++) {
 				
 				System.out.println("Round : " + round);
 				
-				Initialization.initUnicastRequests(simulator, false, true);
+				Initialization.initUnicastRequests(simulator, false, true, true);
 				
 				// optimal solution for the problem with identical data rates. 
 				Optimal optimalAlg = new Optimal(simulator, simulator.getUnicastRequests());

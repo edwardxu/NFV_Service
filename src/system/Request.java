@@ -19,7 +19,7 @@ public class Request extends Node {
 	
 	private double delayRequirement = 0d;//
 	
-	private double dataRate = 0d;
+	private double packetRate = 0d;
 	
 	private Request parent = null;
 	
@@ -29,7 +29,7 @@ public class Request extends Node {
 	public Request(Request parent, double dataRate) {
 		super(SDNRoutingSimulator.idAllocator.nextId(), "Virtual Request");
 		this.parent = parent;
-		this.dataRate = dataRate;
+		this.packetRate = dataRate;
 		this.sourceSwitch = parent.getSourceSwitch();
 		this.destinationSwitches = parent.getDestinationSwitches();
 		this.delayRequirement = parent.getDelayRequirement(); 
@@ -47,7 +47,7 @@ public class Request extends Node {
 		super(SDNRoutingSimulator.idAllocator.nextId(), "Request");
 		this.setSourceSwitch(sourceSwitch);
 		this.setDestinationSwitches(destinationSwitches);
-		this.setDataRate(dataRate); 
+		this.setPacketRate(dataRate); 
 		this.setServiceChainType(serviceChainType);
 		this.setDelayRequirement(delayRequirement);
 		// sort destination nodes in to increasing order of their IDs. 
@@ -123,12 +123,12 @@ public class Request extends Node {
 		this.delayRequirement = delayRequirement;
 	}
 
-	public double getDataRate() {
-		return dataRate;
+	public double getPacketRate() {
+		return packetRate;
 	}
 
-	public void setDataRate(double dataRate) {
-		this.dataRate = dataRate;
+	public void setPacketRate(double dataRate) {
+		this.packetRate = dataRate;
 	}
 
 	public Request getParent() {

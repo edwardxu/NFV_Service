@@ -1,9 +1,7 @@
-package algs;
+package algs.basicrate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -12,6 +10,7 @@ import org.jgrapht.alg.KuhnMunkresMinimalWeightBipartitePerfectMatching;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
 import graph.Node;
+import simulation.Parameters;
 import simulation.SDNRoutingSimulator;
 import system.DataCenter;
 import system.InternetLink;
@@ -19,21 +18,32 @@ import system.Request;
 import system.ServiceChain;
 import system.Switch;
 
-public class Optimal {
+public class OptimalBR {
 
 	private SDNRoutingSimulator simulator = null;
 	
-	private ArrayList<Request> requests = null; 
+	private ArrayList<Request> requests = null;
 	
 	private double totalCost = 0d;
 	
-	private double averageCost = 0d; 
+	private double averageCost = 0d;
 	
 	private int numOfAdmittedReqs = 0;
 	
-	public Optimal(SDNRoutingSimulator sim, ArrayList<Request> requests) {
+	public OptimalBR(SDNRoutingSimulator sim, ArrayList<Request> requests) {
+		
+		if (sim == null || requests == null || requests.isEmpty())
+			throw new IllegalArgumentException("Simulator, request list should not be null or empty!");
+		
 		this.simulator = sim;	
 		this.requests = requests;
+		
+		// check the input of this algorithm
+		for (Request req : this.requests){
+			if (req.getPacketRate() != Parameters.minPacketRate) {
+				throw new IllegalArgumentException("The packet rate of each request must equal to the basicPacketRate!");
+			}
+		}
 	}
 	
 	public void run() {
@@ -51,7 +61,7 @@ public class Optimal {
 		KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink> perfectMatching = new KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink>(bipartiteGraph, XSet, YSet);
 		Set<InternetLink> matching = perfectMatching.getMatching();
 		
-		for (InternetLink auEdge : matching){
+		for (InternetLink auEdge : matching) {
 			Node edgeSource = bipartiteGraph.getEdgeSource(auEdge);
 			Node edgeTarget = bipartiteGraph.getEdgeTarget(auEdge);
 			
@@ -74,7 +84,7 @@ public class Optimal {
 				dc.getAdmittedRequests().put(sc, new ArrayList<Request>());
 			dc.getAdmittedRequests().get(sc).add(admittedReq);
 			
-			numOfAdmittedReqs ++; 
+			numOfAdmittedReqs ++;
 			totalCost += bipartiteGraph.getEdgeWeight(auEdge);
 		}
 		this.averageCost = this.totalCost / this.numOfAdmittedReqs;
@@ -93,10 +103,11 @@ public class Optimal {
 		
 		SimpleWeightedGraph<Node, InternetLink> auxiliaryGraph = new SimpleWeightedGraph<Node, InternetLink>(InternetLink.class);
 		
-		Map<Switch, ArrayList<Switch>> switchToVirtualSwitches = new HashMap<Switch, ArrayList<Switch>>();
+		//Map<Switch, ArrayList<Switch>> switchToVirtualSwitches = new HashMap<Switch, ArrayList<Switch>>();
 		
 		for (Switch sw : switchesWithDCs) {
 			DataCenter dc = sw.getAttachedDataCenter();
+			
 			for (Entry<Integer, HashSet<ServiceChain>> entry : dc.getServiceChains().entrySet()) {
 				for (ServiceChain sc : entry.getValue()) {
 					double processingCapacity = sc.getProcessingCapacity();
@@ -112,7 +123,7 @@ public class Optimal {
 			}
 		}
 		
-		for (Request req : requests){
+		for (Request req : requests) {
 			sourceNodes.add(req);
 			auxiliaryGraph.addVertex(req);
 		}
@@ -150,28 +161,36 @@ public class Optimal {
 					Node sourceSwitch = req.getSourceSwitch();
 					Node destSwitch = req.getDestinationSwitches().get(0);
 					
-					DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, sc.getHomeDataCenter());
-					double delay1 = Double.MAX_VALUE; 
-					double pathCost1 = Double.MAX_VALUE;
-					for (int i = 0; i < shortestPathSToDC.getPathEdgeList().size(); i ++) {
-						if (0 == i ) {
-							delay1 = 0d;
-							pathCost1 = 0d;
+					double delay1 = 0d; 
+					double pathCost1 = 0d; 
+					if (!sourceSwitch.equals(sc.getSwitchHomeDataCenter())) {
+						DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, sc.getHomeDataCenter());
+						delay1 = Double.MAX_VALUE; 
+						pathCost1 = Double.MAX_VALUE;
+						for (int i = 0; i < shortestPathSToDC.getPathEdgeList().size(); i ++) {
+							if (0 == i ) {
+								delay1 = 0d;
+								pathCost1 = 0d;
+							}
+							delay1 += shortestPathSToDC.getPathEdgeList().get(i).getLinkDelay();
+							pathCost1 += originalGraph.getEdgeWeight(shortestPathSToDC.getPathEdgeList().get(i));
 						}
-						delay1 += shortestPathSToDC.getPathEdgeList().get(i).getLinkDelay();
-						pathCost1 += originalGraph.getEdgeWeight(shortestPathSToDC.getPathEdgeList().get(i));
 					}
 					
-					DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sc.getHomeDataCenter(), destSwitch);
-					double delay2 = Double.MAX_VALUE; 
-					double pathCost2 = Double.MAX_VALUE;
-					for (int i = 0; i < shortestPathDCToDest.getPathEdgeList().size(); i ++) {
-						if (0 == i ) {
-							delay2 = 0d;
-							pathCost2 = 0d; 
+					double delay2 = 0d; 
+					double pathCost2 = 0d;
+					if (!destSwitch.equals(sc.getSwitchHomeDataCenter())) {
+						DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sc.getHomeDataCenter(), destSwitch);
+						delay2 = Double.MAX_VALUE; 
+						pathCost2 = Double.MAX_VALUE;
+						for (int i = 0; i < shortestPathDCToDest.getPathEdgeList().size(); i ++) {
+							if (0 == i ) {
+								delay2 = 0d;
+								pathCost2 = 0d; 
+							}
+							delay2 += shortestPathDCToDest.getPathEdgeList().get(i).getLinkDelay();
+							pathCost2 += originalGraph.getEdgeWeight(shortestPathDCToDest.getPathEdgeList().get(i));
 						}
-						delay2 += shortestPathDCToDest.getPathEdgeList().get(i).getLinkDelay();
-						pathCost2 += originalGraph.getEdgeWeight(shortestPathDCToDest.getPathEdgeList().get(i));
 					}
 					
 					double delay = delay1 + delay2 + sc.getHomeDataCenter().getProcessingDelays()[sc.getServiceChainType()];

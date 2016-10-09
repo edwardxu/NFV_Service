@@ -1,5 +1,6 @@
 package system;
 
+
 import graph.Node;
 import simulation.Parameters;
 import utils.RanNum;
@@ -13,8 +14,10 @@ public class ServiceChain extends Node {
 	private double computingResourceDemand = 0d;
 	
 	private ServiceChain parent = null;
+		
+	private DataCenter homeDataCenter = null;
 	
-	private DataCenter homeDataCenter = null; 
+	private Switch switchHomeDataCenter = null; 
 	
 	public ServiceChain(double id, String name) {
 		super(id, name);
@@ -24,6 +27,8 @@ public class ServiceChain extends Node {
 		double minProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][0];
 		double maxProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][1];
 		this.setProcessingCapacity(RanNum.getRandomDoubleRange(maxProcessingCapacity, minProcessingCapacity));
+		
+		
 	}
 	
 	public ServiceChain(double id, String name, ServiceChain parent, double processingCapacity){
@@ -33,13 +38,17 @@ public class ServiceChain extends Node {
 		this.processingCapacity = processingCapacity;
 	}
 	
-	public ServiceChain(double id, String name, int serviceChainType){
+	public ServiceChain(double id, String name, int serviceChainType, boolean serviceChainsWithBasicRate){
 		super(id, name);
 		this.setServiceChainType(serviceChainType);
 
-		double minProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][0];
-		double maxProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][1];
-		this.setProcessingCapacity(RanNum.getRandomDoubleRange(maxProcessingCapacity, minProcessingCapacity));
+		if (!serviceChainsWithBasicRate) {
+			double minProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][0];
+			double maxProcessingCapacity = Parameters.serviceChainProcessingCapacities[serviceChainType][1];
+			this.setProcessingCapacity(RanNum.getRandomDoubleRange(maxProcessingCapacity, minProcessingCapacity));
+		} else {
+			this.setProcessingCapacity(Parameters.minPacketRate);
+		}
 	}
 	
 	public ServiceChain(double id, String name, int serviceChainType, double computingDem, double processingCapacity){
@@ -87,5 +96,13 @@ public class ServiceChain extends Node {
 
 	public void setHomeDataCenter(DataCenter homeDataCenter) {
 		this.homeDataCenter = homeDataCenter;
+	}
+
+	public Switch getSwitchHomeDataCenter() {
+		return switchHomeDataCenter;
+	}
+
+	public void setSwitchHomeDataCenter(Switch switchHomeDataCenter) {
+		this.switchHomeDataCenter = switchHomeDataCenter;
 	}
 }

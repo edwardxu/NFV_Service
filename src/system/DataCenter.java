@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import graph.Node;
 import simulation.Parameters;
@@ -16,13 +17,18 @@ public class DataCenter extends Node {
 	
 	private Map<ServiceChain, ArrayList<Request>> admittedRequests = new HashMap<ServiceChain, ArrayList<Request>>();
 	
+	// request and its admitted packet rate. 
+	private Map<Request, Double> admittedRequestsBR = new HashMap<Request, Double>();
+	
 	// [type] =  cost
 	private double [] costs = new double [Parameters.serviceChainProcessingDelays.length];
 
 	// [type] = processing delay
 	private double [] processingDelays = new double [Parameters.serviceChainProcessingDelays.length];	
 	
-	public DataCenter(double id, String name) {
+	private Switch attachedSwitch = null; 
+	
+	public DataCenter(double id, String name, boolean serviceChainsWithBasicRate) {
 		super(id, name);
 		// initialize costs for different types of service chains, and instances of service chains. 
 		for (int i = 0; i < Parameters.serviceChainProcessingDelays.length; i ++) {
@@ -32,10 +38,12 @@ public class DataCenter extends Node {
 			processingDelays[i] = RanNum.getRandomDoubleRange(maxDelayThisType, minDelayThisType);
 			
 			int numOfInstances = RanNum.getRandomIntRange(Parameters.maxNumOfInstances, Parameters.minNumOfInstances);
-			for (int j = 0; j < numOfInstances; j ++){
+			for (int j = 0; j < numOfInstances; j ++) {
 				double SCID = SDNRoutingSimulator.idAllocator.nextId(); 
-				ServiceChain sc = new ServiceChain(SCID, "Service Chain: " + SCID, i);
+				ServiceChain sc = new ServiceChain(SCID, "Service Chain: " + SCID, i, serviceChainsWithBasicRate);
 				sc.setHomeDataCenter(this);
+				sc.setSwitchHomeDataCenter(this.getAttachedSwitch());
+				
 				if (null == this.getServiceChains().get(i))
 					this.getServiceChains().put(i, new HashSet<ServiceChain>());
 				this.getServiceChains().get(i).add(sc);
@@ -43,25 +51,38 @@ public class DataCenter extends Node {
 		}
 	}
 	
-	public void admitRequest(Request req, ServiceChain sc) {
+	public void admitRequest(Request req, double admittedPacketRateReq, ServiceChain sc, boolean basicRate) {
 				
-		double availableRateThisSC = this.getAvailableProcessingRate(sc);
+		double availableRateThisSC = this.getAvailableProcessingRate(sc, basicRate);
 
-		if (availableRateThisSC < req.getDataRate())
-			System.out.println("Error: available computing resource is not enough to admit service chain " + sc.getName());
-		else {
-			if (null == this.getAdmittedRequests().get(sc))
-				this.getAdmittedRequests().put(sc, new ArrayList<Request>());
-			this.getAdmittedRequests().get(sc).add(req);
+		if (!basicRate) {
+			if (availableRateThisSC < req.getPacketRate())
+				System.out.println("Error: available computing resource is not enough to admit service chain " + sc.getName());
+			else {
+				if (null == this.getAdmittedRequests().get(sc))
+					this.getAdmittedRequests().put(sc, new ArrayList<Request>());
+				this.getAdmittedRequests().get(sc).add(req);
+			}
+		} else {
+			if (availableRateThisSC < req.getPacketRate())
+				System.out.println("Error: available computing resource is not enough to admit service chain " + sc.getName());
+			else {
+				this.getAdmittedRequestsBR().put(req, admittedPacketRateReq);
+			}
 		}
 	}
 	
-	private double getAvailableProcessingRate(ServiceChain sc){
+	private double getAvailableProcessingRate(ServiceChain sc, boolean basicRate) {
 		
-		double occupiedProcessingCapacity = 0d; 
-		
-		for (Request req : this.admittedRequests.get(sc)){
-			occupiedProcessingCapacity += req.getDataRate();
+		double occupiedProcessingCapacity = 0d;
+		if (!basicRate) {
+			for (Request req : this.admittedRequests.get(sc)){
+				occupiedProcessingCapacity += req.getPacketRate();
+			}
+		} else {
+			for (Entry<Request, Double> entry : this.admittedRequestsBR.entrySet()) {
+				occupiedProcessingCapacity += entry.getValue();
+			}
 		}
 		
 		return sc.getProcessingCapacity() - occupiedProcessingCapacity;
@@ -69,6 +90,7 @@ public class DataCenter extends Node {
 	
 	public void reset() {
 		this.setAdmittedRequests(new HashMap<ServiceChain, ArrayList<Request>>());
+		this.setAdmittedRequestsBR(new HashMap<Request, Double>());
 	}
 
 	public Map<Integer, HashSet<ServiceChain>> getServiceChains() {
@@ -101,5 +123,21 @@ public class DataCenter extends Node {
 
 	public void setProcessingDelays(double [] processingDelays) {
 		this.processingDelays = processingDelays;
+	}
+
+	public Switch getAttachedSwitch() {
+		return attachedSwitch;
+	}
+
+	public void setAttachedSwitch(Switch attachedSwitch) {
+		this.attachedSwitch = attachedSwitch;
+	}
+
+	public Map<Request, Double> getAdmittedRequestsBR() {
+		return admittedRequestsBR;
+	}
+
+	public void setAdmittedRequestsBR(Map<Request, Double> admittedRequestsBR) {
+		this.admittedRequestsBR = admittedRequestsBR;
 	}
 }
