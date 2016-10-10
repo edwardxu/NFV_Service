@@ -96,6 +96,8 @@ public final class MCMC {
 		
 		maxBudget *= this.getCommodities().size();
 		
+		this.setBudget(maxBudget);
+		
 		for (MinCostFlowEdge e : network.edgeSet()) {
 			MinCostFlowEdge edge = (MinCostFlowEdge) e;
 			if (edge.getCapacity() < -epsilon) {

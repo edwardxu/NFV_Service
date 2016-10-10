@@ -34,7 +34,9 @@ public class ServiceChain extends Node {
 	public ServiceChain(double id, String name, ServiceChain parent, double processingCapacity){
 		super(id, name);
 		this.setParent(parent);
-		this.serviceChainType = parent.getServiceChainType();
+		if (null != parent)
+			this.serviceChainType = parent.getServiceChainType();
+		
 		this.processingCapacity = processingCapacity;
 	}
 	

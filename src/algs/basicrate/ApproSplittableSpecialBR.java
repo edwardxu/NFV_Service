@@ -41,20 +41,13 @@ public class ApproSplittableSpecialBR {
 		
 		this.simulator = sim;	
 		this.requests = requests;
-		
-		// check the input of this algorithm
-		for (Request req : this.requests) {
-			if (req.getPacketRate() != Parameters.minPacketRate) {
-				throw new IllegalArgumentException("The packet rate of each request must equal to the basicPacketRate!");
-			}
-		}
 	}
 	
 	public void run() {
 		
 		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		ArrayList<Commodity> commodities = new ArrayList<Commodity>();
-		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator, this.requests, originalGraph, this.simulator.getSwitchesAttachedDataCenters(), commodities);
+		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator, this.requests, originalGraph, this.simulator.getSwitchesAttachedDataCenters(), commodities, 1d);
 		// call the mcmc algorithm. 
 		MCMC flowAlg = new MCMC(flowNetwork, this.epsilon, commodities);
 		
@@ -71,15 +64,16 @@ public class ApproSplittableSpecialBR {
 				DataCenter dc = scNode.getParent().getHomeDataCenter();
 				
 				double admittedPacketRate = edge.getFlows() * Parameters.minPacketRate;
-				dc.admitRequest(req, admittedPacketRate, null, true);
+				dc.admitRequest(req, admittedPacketRate, scNode.getParent(), true);
 				
 				admittedReqs.add(req);
 				
-				totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * admittedPacketRate;
+				totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * edge.getFlows();
 			}
 		}
 		
-		this.averageCost = totalCost / admittedReqs.size();
+		this.numOfAdmittedReqs = admittedReqs.size(); 
+		this.averageCost = totalCost / this.numOfAdmittedReqs;
 	}
 	
 	public static ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> constructAuxiliaryGraph(
@@ -87,7 +81,8 @@ public class ApproSplittableSpecialBR {
 			ArrayList<Request> requests, 
 			SimpleWeightedGraph<Node, InternetLink> originalGraph, 
 			ArrayList<Switch> switchesWithDCs, 
-			ArrayList<Commodity> commodities
+			ArrayList<Commodity> commodities, 
+			double networkCapacityScaleDownRatio
 			) {
 		
 		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> auxiliaryGraph = new ListenableDirectedWeightedGraph<Node, MinCostFlowEdge>(MinCostFlowEdge.class);
@@ -120,6 +115,7 @@ public class ApproSplittableSpecialBR {
 				Object [] scs = dc.getServiceChains().get(type).toArray();
 				
 				ServiceChain serviceChainNode = new ServiceChain(SDNRoutingSimulator.idAllocator.nextId(), "Service Chain Node", (ServiceChain) scs[0], dc.getServiceChains().get(type).size());
+				auxiliaryGraph.addVertex(serviceChainNode);
 				scNodes.add(serviceChainNode);
 			}
 		}
@@ -144,8 +140,8 @@ public class ApproSplittableSpecialBR {
 					
 					double delay1 = 0d; 
 					double pathCost1 = 0d; 
-					if (!sourceSwitch.equals(dc)) {
-						DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, dc);
+					if (!sourceSwitch.equals(dc.getAttachedSwitch())) {
+						DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, dc.getAttachedSwitch());
 						delay1 = Double.MAX_VALUE; 
 						pathCost1 = Double.MAX_VALUE;
 						for (int i = 0; i < shortestPathSToDC.getPathEdgeList().size(); i ++) {
@@ -160,8 +156,8 @@ public class ApproSplittableSpecialBR {
 					
 					double delay2 = 0d; 
 					double pathCost2 = 0d;
-					if (!destSwitch.equals(dc)) {
-						DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, dc, destSwitch);
+					if (!destSwitch.equals(dc.getAttachedSwitch())) {
+						DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, dc.getAttachedSwitch(), destSwitch);
 						delay2 = Double.MAX_VALUE; 
 						pathCost2 = Double.MAX_VALUE;
 						for (int i = 0; i < shortestPathDCToDest.getPathEdgeList().size(); i ++) {
@@ -194,7 +190,8 @@ public class ApproSplittableSpecialBR {
 			
 			MinCostFlowEdge auEdge = auxiliaryGraph.addEdge(scNode, dc);
 			auEdge.setCost(cost);
-			auEdge.setCapacity(dc.getServiceChains().get(scType).size());
+			int capa = (int) (dc.getServiceChains().get(scType).size() / networkCapacityScaleDownRatio);
+			auEdge.setCapacity(capa);
 			totalCap += auEdge.getCapacity();
 		}
 		

@@ -52,10 +52,9 @@ public class DataCenter extends Node {
 	}
 	
 	public void admitRequest(Request req, double admittedPacketRateReq, ServiceChain sc, boolean basicRate) {
-				
-		double availableRateThisSC = this.getAvailableProcessingRate(sc, basicRate);
-
+		
 		if (!basicRate) {
+			double availableRateThisSC = this.getAvailableProcessingRate(sc, basicRate);
 			if (availableRateThisSC < req.getPacketRate())
 				System.out.println("Error: available computing resource is not enough to admit service chain " + sc.getName());
 			else {
@@ -64,28 +63,42 @@ public class DataCenter extends Node {
 				this.getAdmittedRequests().get(sc).add(req);
 			}
 		} else {
-			if (availableRateThisSC < req.getPacketRate())
+			double availableRateThisTypeSC = this.getAvailableProcessingRate(sc, basicRate);
+			if (availableRateThisTypeSC < admittedPacketRateReq)
 				System.out.println("Error: available computing resource is not enough to admit service chain " + sc.getName());
 			else {
-				this.getAdmittedRequestsBR().put(req, admittedPacketRateReq);
+				if (null == this.getAdmittedRequestsBR().get(req))
+					this.getAdmittedRequestsBR().put(req, 0d);
+				
+				if (this.getAdmittedRequestsBR().get(req) + admittedPacketRateReq > req.getPacketRate()) {
+					this.getAdmittedRequestsBR().put(req, req.getPacketRate());
+				} else {
+					this.getAdmittedRequestsBR().put(req, this.getAdmittedRequestsBR().get(req) + admittedPacketRateReq);
+				}
 			}
 		}
 	}
 	
-	private double getAvailableProcessingRate(ServiceChain sc, boolean basicRate) {
+	public double getAvailableProcessingRate(ServiceChain sc, boolean basicRate) {
 		
 		double occupiedProcessingCapacity = 0d;
 		if (!basicRate) {
 			for (Request req : this.admittedRequests.get(sc)){
 				occupiedProcessingCapacity += req.getPacketRate();
 			}
-		} else {
+			return sc.getProcessingCapacity() - occupiedProcessingCapacity;
+		} else {	
+			double thisTypeSCProcessingCapacity = 0d; 
+			for (ServiceChain scThisType : this.serviceChains.get(sc.getServiceChainType()))
+				thisTypeSCProcessingCapacity += scThisType.getProcessingCapacity();
+			
 			for (Entry<Request, Double> entry : this.admittedRequestsBR.entrySet()) {
-				occupiedProcessingCapacity += entry.getValue();
+				if (entry.getKey().getServiceChainType() == sc.getServiceChainType()) {
+					occupiedProcessingCapacity += entry.getValue();
+				}
 			}
+			return thisTypeSCProcessingCapacity - occupiedProcessingCapacity;
 		}
-		
-		return sc.getProcessingCapacity() - occupiedProcessingCapacity;
 	}
 	
 	public void reset() {

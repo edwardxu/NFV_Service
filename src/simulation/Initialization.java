@@ -144,10 +144,16 @@ public class Initialization {
 				// Step 3: generate the service chain type, data rate, delay requirement of this request
 				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
 				double dataRate = 0d;
-				if (underBasicPacketRate)
+				
+				if (underIdenticalPacketRate)
 					dataRate = identicalDataRate;
-				else
-					dataRate = Parameters.minPacketRate * RanNum.getRandomIntRange((int) (Parameters.maxPacketRate/Parameters.minPacketRate), 1);
+				else {
+					if (underBasicPacketRate){
+						dataRate = Parameters.minPacketRate * RanNum.getRandomIntRange((int) (Parameters.maxPacketRate/Parameters.minPacketRate), 1);
+					} else {
+						dataRate = RanNum.getRandomDoubleRange(Parameters.maxPacketRate, Parameters.minPacketRate);
+					}
+				}
 				
 				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDelayRequirement, Parameters.minDelayRequirement);
 				

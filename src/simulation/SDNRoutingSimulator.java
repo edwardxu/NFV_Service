@@ -8,6 +8,10 @@ import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
 import algs.Optimal;
+import algs.basicrate.ApproSplittableSpecialBR;
+import algs.basicrate.ApproUnSplittableSpecialBR;
+import algs.basicrate.Greedy;
+import algs.basicrate.OptimalBR;
 import system.InternetLink;
 import system.Request;
 import system.Switch;
@@ -38,6 +42,8 @@ public class SDNRoutingSimulator {
 		
 	public static void main(String[] s) {
 		performanceOptimal("GEANT");// (4)
+		//performanceApproSplittableBR("GEANT");
+		//performanceApproUnSplittableBR("GEANT");
 		//performanceHeuristicNumReqs("GEANT");
 		//performanceHeuristicNumReqs("AS1755");
 		//performanceHeuristicNumReqs("AS4755");
@@ -45,8 +51,8 @@ public class SDNRoutingSimulator {
 	
 	public static void performanceOptimal(String networkName) {
 		
-		int [] numOfReqs = {50, 100, 150, 200, 250};
-		
+		//int [] numOfReqs = {150, 200, 250, 300, 350};
+		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
 		int numAlgs = 2;
 		
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
@@ -61,13 +67,12 @@ public class SDNRoutingSimulator {
 		}
 		
 		int numRound = 1;
-		
 		//changeNumOfNodes(network_sizes[sizeI]);
-		if (networkName.equals("GEANT"))
+		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
-		else if (networkName.equals("AS1755")){
+		} else if (networkName.equals("AS1755")) {
 			Parameters.numOfNodes = 172;
-		} else if (networkName.equals("AS4755")){
+		} else if (networkName.equals("AS4755")) {
 			Parameters.numOfNodes = 121;
 		}
 		
@@ -92,13 +97,123 @@ public class SDNRoutingSimulator {
 				Initialization.initUnicastRequests(simulator, false, true, true);
 				
 				// optimal solution for the problem with identical data rates. 
-				Optimal optimalAlg = new Optimal(simulator, simulator.getUnicastRequests());
+				OptimalBR optimalAlg = new OptimalBR(simulator, simulator.getUnicastRequests());
 				long startTime = System.currentTimeMillis();
 				optimalAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
 				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][0] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				Greedy greedyAlg = new Greedy(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				greedyAlg.run(true);
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+			}
+		}
+		
+		System.out.println("Num of requests admitted------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			System.out.println(out);
+		}
+		
+		System.out.println("Average cost---------------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalCosts[sizeI][j] + " ";
+			
+			System.out.println(out);
+		}
+		
+		System.out.println("Running time--------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveRunningTime[sizeI][j] + " ";
+			
+			System.out.println(out);
+		}
+	}
+	
+	public static void performanceApproSplittableBR(String networkName) {
+		
+		//int [] numOfReqs = {150, 200, 250, 300, 350};
+		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+		int numAlgs = 2;
+		
+		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
+		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
+		double [][] aveNumOfAdmitted = new double [numOfReqs.length][numAlgs];
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			for (int j = 0; j < numAlgs; j ++) {
+				aveTotalCosts[sizeI][j] = 0d;
+				aveRunningTime[sizeI][j] = 0d;
+				aveNumOfAdmitted[sizeI][j] = 0d;
+			}
+		}
+		
+		int numRound = 1;
+		//changeNumOfNodes(network_sizes[sizeI]);
+		if (networkName.equals("GEANT")) {
+			Parameters.numOfNodes = 40;
+		} else if (networkName.equals("AS1755")) {
+			Parameters.numOfNodes = 172;
+		} else if (networkName.equals("AS4755")) {
+			Parameters.numOfNodes = 121;
+		}
+		
+		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
+		
+		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
+		
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			System.out.println("Number of requests in R(t): " + numOfReqs[sizeI]);
+			Parameters.maxServersForEachSC = numOfReqs[sizeI];
+			Parameters.numReqs = numOfReqs[sizeI];
+			
+			Initialization.initDataCenters(simulator, true);
+			Initialization.initEdgeWeights(simulator);
+			
+			for (int round = 0; round < numRound; round ++) {
+				System.out.println("Round : " + round);
+				Initialization.initUnicastRequests(simulator, false, true, false);
+				
+				// optimal solution for the problem with identical data rates. 
+				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				long startTime = System.currentTimeMillis();
+				approAlg.run();			
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				
 				// reset 
@@ -107,6 +222,124 @@ public class SDNRoutingSimulator {
 				
 				for (InternetLink il : simulator.getNetwork().edgeSet())
 					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				Greedy greedyAlg = new Greedy(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				greedyAlg.run(true);
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+			}
+		}
+		
+		System.out.println("Average cost---------------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalCosts[sizeI][j] + " ";
+			
+			System.out.println(out);
+		}
+		
+		System.out.println("Running time--------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveRunningTime[sizeI][j] + " ";
+			
+			System.out.println(out);
+		}
+	}
+	
+	public static void performanceApproUnSplittableBR(String networkName) {
+		
+		//int [] numOfReqs = {150, 200, 250, 300, 350};
+		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+
+		int numAlgs = 2;
+		
+		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
+		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
+		double [][] aveNumOfAdmitted = new double [numOfReqs.length][numAlgs];
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			for (int j = 0; j < numAlgs; j ++) {
+				aveTotalCosts[sizeI][j] = 0d;
+				aveRunningTime[sizeI][j] = 0d;
+				aveNumOfAdmitted[sizeI][j] = 0d;
+			}
+		}
+		
+		int numRound = 1;
+		//changeNumOfNodes(network_sizes[sizeI]);
+		if (networkName.equals("GEANT")) {
+			Parameters.numOfNodes = 40;
+		} else if (networkName.equals("AS1755")) {
+			Parameters.numOfNodes = 172;
+		} else if (networkName.equals("AS4755")) {
+			Parameters.numOfNodes = 121;
+		}
+		
+		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
+		
+		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
+		
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			System.out.println("Number of requests in R(t): " + numOfReqs[sizeI]);
+			Parameters.maxServersForEachSC = numOfReqs[sizeI];
+			Parameters.numReqs = numOfReqs[sizeI];
+			
+			Initialization.initDataCenters(simulator, true);
+			Initialization.initEdgeWeights(simulator);
+			
+			for (int round = 0; round < numRound; round ++) {
+				System.out.println("Round : " + round);
+				Initialization.initUnicastRequests(simulator, false, true, false);
+				
+				// optimal solution for the problem with identical data rates. 
+				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				long startTime = System.currentTimeMillis();
+				approAlg.run();			
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][0] += (totalTime / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				Greedy greedyAlg = new Greedy(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				greedyAlg.run(true);
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
 			}
 		}
 		

@@ -56,7 +56,7 @@ public class OptimalBR {
 		ArrayList<Node> dummyNodesYSet = new ArrayList<Node>();
 
 		SimpleWeightedGraph<Node, InternetLink> bipartiteGraph = constructAuxiliaryGraph(this.requests, 
-				originalGraph, this.simulator.getSwitchesAttachedDataCenters(), this.requests.get(0).getPacketRate(), XSet, YSet, dummyNodesXSet, dummyNodesYSet);
+				originalGraph, this.simulator.getSwitchesAttachedDataCenters(), Parameters.minPacketRate, XSet, YSet, dummyNodesXSet, dummyNodesYSet);
 		
 		KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink> perfectMatching = new KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink>(bipartiteGraph, XSet, YSet);
 		Set<InternetLink> matching = perfectMatching.getMatching();
@@ -65,29 +65,31 @@ public class OptimalBR {
 			Node edgeSource = bipartiteGraph.getEdgeSource(auEdge);
 			Node edgeTarget = bipartiteGraph.getEdgeTarget(auEdge);
 			
-			if (dummyNodesXSet.contains(edgeSource) || dummyNodesXSet.contains(edgeTarget) || dummyNodesYSet.contains(edgeSource) || dummyNodesYSet.contains(edgeTarget))
+			double edgeWeight = bipartiteGraph.getEdgeWeight(auEdge);
+			
+			if (edgeWeight == Double.MAX_VALUE || dummyNodesXSet.contains(edgeSource) || dummyNodesXSet.contains(edgeTarget) || dummyNodesYSet.contains(edgeSource) || dummyNodesYSet.contains(edgeTarget))
 				continue;
+			
 			// an admission of the request 
 			Request admittedReq = null; 
-			ServiceChain sc = null; 
+			ServiceChain vSC = null; 
 			if (edgeSource instanceof Request) {
 				admittedReq = (Request) edgeSource;
-				sc = (ServiceChain) edgeTarget; 
-			}
-			else {
+				vSC = (ServiceChain) edgeTarget; 
+			} else {
 				admittedReq = (Request) edgeTarget;
-				sc = (ServiceChain) edgeSource; 
+				vSC = (ServiceChain) edgeSource; 
 			}
 			
-			DataCenter dc = sc.getHomeDataCenter(); 
-			if (null == dc.getAdmittedRequests().get(sc))
-				dc.getAdmittedRequests().put(sc, new ArrayList<Request>());
-			dc.getAdmittedRequests().get(sc).add(admittedReq);
+			DataCenter dc = vSC.getParent().getHomeDataCenter(); 
+			dc.admitRequest(admittedReq, admittedReq.getPacketRate(), vSC.getParent(), true);
 			
 			numOfAdmittedReqs ++;
 			totalCost += bipartiteGraph.getEdgeWeight(auEdge);
 		}
+		
 		this.averageCost = this.totalCost / this.numOfAdmittedReqs;
+	
 	}
 	
 	private SimpleWeightedGraph<Node, InternetLink> constructAuxiliaryGraph(
@@ -128,7 +130,7 @@ public class OptimalBR {
 			auxiliaryGraph.addVertex(req);
 		}
 		
-		if (sourceNodes.size() > targetNodes.size()){
+		if (sourceNodes.size() > targetNodes.size()) {
 			// add dummy target Nodes
 			int numDummiesToAdd = sourceNodes.size() - targetNodes.size(); 
 			for (int i = 0; i < numDummiesToAdd; i ++) {
@@ -151,20 +153,28 @@ public class OptimalBR {
 		// add edges from source node to target node
 		double maxCost = -1d; 
 		for (Node sNode : sourceNodes) {
+			
 			Request req = (Request) sNode;
 			
 			for (Node tNode : targetNodes) {
-				ServiceChain sc = (ServiceChain) tNode;
+				ServiceChain vSC = (ServiceChain) tNode;
 				
 				if (!dummySourceNodes.contains(sNode) && !dummyTargetNodes.contains(tNode)) {
+					
+					if ((req.getServiceChainType() != vSC.getParent().getServiceChainType() )){
+						InternetLink auEdge = auxiliaryGraph.addEdge(sNode, tNode);
+						auxiliaryGraph.setEdgeWeight(auEdge, Double.MAX_VALUE);
+						continue; 
+					}
+					
 					// check whether the delay requirement is met. 
 					Node sourceSwitch = req.getSourceSwitch();
 					Node destSwitch = req.getDestinationSwitches().get(0);
 					
 					double delay1 = 0d; 
 					double pathCost1 = 0d; 
-					if (!sourceSwitch.equals(sc.getSwitchHomeDataCenter())) {
-						DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, sc.getHomeDataCenter());
+					if (!sourceSwitch.equals(vSC.getSwitchHomeDataCenter())) {
+						DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, vSC.getParent().getHomeDataCenter().getAttachedSwitch());
 						delay1 = Double.MAX_VALUE; 
 						pathCost1 = Double.MAX_VALUE;
 						for (int i = 0; i < shortestPathSToDC.getPathEdgeList().size(); i ++) {
@@ -179,8 +189,8 @@ public class OptimalBR {
 					
 					double delay2 = 0d; 
 					double pathCost2 = 0d;
-					if (!destSwitch.equals(sc.getSwitchHomeDataCenter())) {
-						DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sc.getHomeDataCenter(), destSwitch);
+					if (!destSwitch.equals(vSC.getSwitchHomeDataCenter())) {
+						DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, vSC.getParent().getHomeDataCenter().getAttachedSwitch(), destSwitch);
 						delay2 = Double.MAX_VALUE; 
 						pathCost2 = Double.MAX_VALUE;
 						for (int i = 0; i < shortestPathDCToDest.getPathEdgeList().size(); i ++) {
@@ -193,14 +203,17 @@ public class OptimalBR {
 						}
 					}
 					
-					double delay = delay1 + delay2 + sc.getHomeDataCenter().getProcessingDelays()[sc.getServiceChainType()];
+					double delay = delay1 + delay2 + vSC.getParent().getHomeDataCenter().getProcessingDelays()[vSC.getParent().getServiceChainType()];
 					if (delay < req.getDelayRequirement()) {
 						// add an edge in the auxiliary graph. 
-						double cost = req.getPacketRate() * (pathCost1 + pathCost2 + sc.getHomeDataCenter().getCosts()[sc.getServiceChainType()]);
+						double cost = req.getPacketRate() * (pathCost1 + pathCost2 + vSC.getParent().getHomeDataCenter().getCosts()[vSC.getParent().getServiceChainType()]);
 						InternetLink auEdge = auxiliaryGraph.addEdge(sNode, tNode);
 						auxiliaryGraph.setEdgeWeight(auEdge, cost);
 						if (cost > maxCost)
 							maxCost = cost; 
+					} else {
+						InternetLink auEdge = auxiliaryGraph.addEdge(sNode, tNode);
+						auxiliaryGraph.setEdgeWeight(auEdge, Double.MAX_VALUE);
 					}
 				}
 			}
@@ -212,7 +225,16 @@ public class OptimalBR {
 			for (Node tNode : targetNodes) {
 				ServiceChain sc = (ServiceChain) tNode;
 				InternetLink edge = auxiliaryGraph.addEdge(req, sc);
-				auxiliaryGraph.setEdgeWeight(edge, maxCost * 10);
+				auxiliaryGraph.setEdgeWeight(edge, Double.MAX_VALUE); //maxCost * 10);
+			}
+		}
+		
+		for (Node sNode : sourceNodes){
+			Request req = (Request) sNode;
+			for (Node tNode : dummyTargetNodes) {
+				ServiceChain sc = (ServiceChain) tNode;
+				InternetLink edge = auxiliaryGraph.addEdge(req, sc);
+				auxiliaryGraph.setEdgeWeight(edge, Double.MAX_VALUE); //maxCost * 10);
 			}
 		}
 		

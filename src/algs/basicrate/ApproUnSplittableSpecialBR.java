@@ -21,6 +21,7 @@ import system.ServiceChain;
 import utils.Pair;
 
 public class ApproUnSplittableSpecialBR {
+	
 	private SDNRoutingSimulator simulator = null;
 	
 	private ArrayList<Request> requests = null;
@@ -40,21 +41,15 @@ public class ApproUnSplittableSpecialBR {
 		
 		this.simulator = sim;	
 		this.requests = requests;
-		
-		// check the input of this algorithm
-		for (Request req : this.requests) {
-			if (req.getPacketRate() != Parameters.minPacketRate) {
-				throw new IllegalArgumentException("The packet rate of each request must equal to the basicPacketRate!");
-			}
-		}
 	}
 	
 	public void run() {
 		
 		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		ArrayList<Commodity> commodities = new ArrayList<Commodity>();
-		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator, this.requests, originalGraph, this.simulator.getSwitchesAttachedDataCenters(), commodities);
-		// call the mcmc algorithm. 
+		
+		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator, this.requests, originalGraph, this.simulator.getSwitchesAttachedDataCenters(), commodities, this.simulator.getSwitchesAttachedDataCenters().size());
+		// call the MCMC algorithm. 
 		MCMC flowAlg = new MCMC(flowNetwork, this.epsilon, commodities);
 		
 		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> afterFlowNetwork = flowAlg.calcMinCostFlow();
@@ -72,7 +67,7 @@ public class ApproUnSplittableSpecialBR {
 				DataCenter dc = scNode.getParent().getHomeDataCenter();
 				double admittedPacketRate = edge.getFlows() * Parameters.minPacketRate;
 				
-				double unitCost = edge.getCost() + dc.getCosts()[req.getServiceChainType()]; 
+				double unitCost = edge.getCost() / Parameters.minPacketRate + dc.getCosts()[req.getServiceChainType()]; 
 				
 				if (null == admittedReqs.get(req))
 					admittedReqs.put(req, new HashMap<DataCenter, Pair<Double>>());
@@ -97,11 +92,13 @@ public class ApproUnSplittableSpecialBR {
 					dcWithMostTraffic = entry2.getKey();
 				}
 			}
-			dcWithMostTraffic.admitRequest(req, req.getPacketRate(), null, true);
+			
+			dcWithMostTraffic.admitRequest(req, req.getPacketRate(), (ServiceChain) dcWithMostTraffic.getServiceChains().get(req.getServiceChainType()).toArray()[0], true);
 			totalCost += req.getPacketRate() * entry.getValue().get(dcWithMostTraffic).getB();
 		}
 		
-		this.averageCost = totalCost / admittedReqs.size();
+		this.numOfAdmittedReqs = admittedReqs.size();
+		this.averageCost = totalCost / this.numOfAdmittedReqs;
 	}
 
 	public SDNRoutingSimulator getSimulator() {
