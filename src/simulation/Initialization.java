@@ -113,7 +113,12 @@ public class Initialization {
 		}
 	}
 	
-	public static void initUnicastRequests(SDNRoutingSimulator simulator, boolean realdata, boolean underBasicPacketRate, boolean underIdenticalPacketRate) {
+	public static void initUnicastRequests(
+			SDNRoutingSimulator simulator, 
+			boolean realdata, 
+			boolean underBasicPacketRate, 
+			boolean underIdenticalPacketRate) {
+		
 		ArrayList<Request> reqs = simulator.getUnicastRequests();
 		
 		if (!reqs.isEmpty())

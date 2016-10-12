@@ -18,10 +18,10 @@ public class Parameters {
 	
 	public static int K_small = 9; // in geant toplogy.
 	
-	public static int maxServersForEachSC = 3; // may vary from 2, 4, 6, 8
+	//public static int maxServersForEachSC = 3; // may vary from 2, 4, 6, 8
 	
 	/*********************************Requests************************************/
-	public static int numReqs = 1000; //20000;
+	public static int numReqs = 800; //20000;
 	
 	public static int minDelayRequirement = 10; //ms
 	public static int maxDelayRequirement = 100; //ms
