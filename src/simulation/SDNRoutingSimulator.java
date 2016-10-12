@@ -41,9 +41,23 @@ public class SDNRoutingSimulator {
 	}
 		
 	public static void main(String[] s) {
-		//performanceOptimalNumReqsBR("GEANT");// (4)
-		performanceOptimalNetworkSizesBR();
-		//performanceApproSplittableBRNumReqs("GEANT");
+		
+		// first set of experiments. 
+		//performanceOptimalNetworkSizesBR();
+		//performanceOptimalNumReqsBR("GEANT");
+		//performanceOptimalNumReqsBR("AS4755");
+		//performanceOptimalNumReqsBR("AS1755");
+		
+		performanceApproSplittableNetworkSizesBR();
+		//performanceApproSplittableNumReqsBR("GEANT");
+		//performanceApproSplittableNumReqsBR("AS4744");
+		//performanceApproSplittableNumReqsBR("AS1755");
+		
+		//performanceApproUnSplittableNetworkSizesBR();
+		//performanceApproUnSplittableNumReqsBR("GEANT");
+		//performanceApproUnSplittableNumReqsBR("AS4744");
+		//performanceApproUnSplittableNumReqsBR("AS1755");
+		
 		//performanceApproUnSplittableBRNumReqs("GEANT");
 		//performanceHeuristicNumReqs("GEANT");
 		//performanceHeuristicNumReqs("AS1755");
@@ -155,7 +169,7 @@ public class SDNRoutingSimulator {
 	public static void performanceOptimalNumReqsBR(String networkName) {
 		
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
-		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+		int [] numOfReqs = {1500, 1700, 1900, 2100};
 		int numAlgs = 2;
 		
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
@@ -369,7 +383,9 @@ public class SDNRoutingSimulator {
 	public static void performanceApproSplittableNumReqsBR(String networkName) {
 		
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
-		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+//		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+		int [] numOfReqs = {1500, 1700, 1900, 2100};
+
 		int numAlgs = 2;
 		
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
@@ -568,7 +584,8 @@ public class SDNRoutingSimulator {
 	public static void performanceApproUnSplittableNumReqsBR(String networkName) {
 		
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
-		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+//		int [] numOfReqs = {500, 600, 700, 800, 900, 1000};
+		int [] numOfReqs = {1500, 1700, 1900, 2100};
 
 		int numAlgs = 2;
 		
