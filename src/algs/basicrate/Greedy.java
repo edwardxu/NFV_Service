@@ -42,9 +42,9 @@ public class Greedy {
 			Switch sourceSwitch = req.getSourceSwitch();
 			Switch destSwitch = req.getDestinationSwitches().get(0);
 			
-			DataCenter dcWithMostAvail = null;
-			double maxAvail = -1d;
-			double costMaxAvail = 0d; 
+			DataCenter dcWithMinCost = null;
+			double minCost = Double.MAX_VALUE; 
+			double minCostDCAvail = 0d; 
 			for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()) {
 				
 				DataCenter dc = swDC.getAttachedDataCenter();  
@@ -83,21 +83,23 @@ public class Greedy {
 				}
 				
 				double delay = delay1 + delay2 + dc.getProcessingDelays()[req.getServiceChainType()];
+				double costThisDC = pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()];
+				
 				
 				if (delay < req.getDelayRequirement()) {
-					if (avail > maxAvail) {
-						maxAvail = avail; 
-						dcWithMostAvail = dc;
-						costMaxAvail = pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()];
+					if (minCost > costThisDC) {
+						minCost = costThisDC; 
+						dcWithMinCost = dc;
+						minCostDCAvail = avail; 
 					}
 				}
 			}
 			
-			if (maxAvail > req.getPacketRate()){
-				dcWithMostAvail.admitRequest(req, req.getPacketRate(), (ServiceChain)dcWithMostAvail.getServiceChains().get(req.getServiceChainType()).toArray()[0], true);
+			if (minCostDCAvail > req.getPacketRate()){
+				dcWithMinCost.admitRequest(req, req.getPacketRate(), (ServiceChain)dcWithMinCost.getServiceChains().get(req.getServiceChainType()).toArray()[0], true);
 				admittedReqs.add(req);
 				// calculate the cost of implementing this request;
-				this.totalCost += (costMaxAvail * req.getPacketRate()); 
+				this.totalCost += (minCost * req.getPacketRate()); 
 			}
 		}
 		

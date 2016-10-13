@@ -10,9 +10,9 @@
          </Console>
 
         <Routing name="Routing">
-                    <Routes pattern="$${thread:threadName}">             
+                    <Routes pattern="$${ctx:threadName}">             
                         <Route>
-                            <RollingFile name="RollingFile-${thread:threadName}" fileName="${logDir}/last-${thread:threadName}.log" filePattern="${logDir}/%d{yyyy-MM-dd}/archived_%d{HH-mm}-${thread:threadName}.log">
+                            <RollingFile name="RollingFile-${ctx:threadName}" fileName="${logDir}/last-${ctx:threadName}.log" filePattern="${logDir}/%d{yyyy-MM-dd}/archived_%d{HH-mm}-${ctx:threadName}.log">
                                     <PatternLayout pattern="${logMsgPattern}"/>
                                     <Policies>
                                 <OnStartupTriggeringPolicy />

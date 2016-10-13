@@ -33,7 +33,7 @@ public class ApproUnSplittableSpecialBR {
 	
 	private int numOfAdmittedReqs = 0;
 	
-	private double epsilon = 0.1;
+	private double epsilon = 0.07;
 	
 	public ApproUnSplittableSpecialBR(SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		

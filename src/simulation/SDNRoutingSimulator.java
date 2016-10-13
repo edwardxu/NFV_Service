@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
@@ -159,6 +160,8 @@ public class SDNRoutingSimulator {
 	
 	public static void performanceOptimalNetworkSizesBR() {
 		
+		ThreadContext.put("threadName", "PER-OPT-ALL");
+		
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		int [] networkSizes = {50, 100, 150, 200, 250};
 		int numAlgs = 2;
@@ -257,6 +260,8 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	public static void performanceOptimalNumReqsBR(String networkName) {
@@ -280,10 +285,13 @@ public class SDNRoutingSimulator {
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
+			ThreadContext.put("threadName", "PER-OPT-GEANT");
 		} else if (networkName.equals("AS1755")) {
 			Parameters.numOfNodes = 172;
+			ThreadContext.put("threadName", "PER-OPT-AS1755");
 		} else if (networkName.equals("AS4755")) {
 			Parameters.numOfNodes = 121;
+			ThreadContext.put("threadName", "PER-OPT-AS4755");
 		}
 		
 		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
@@ -369,10 +377,13 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	public static void performanceApproSplittableNetworkSizesBR() {
 		
+		ThreadContext.put("threadName", "PER-APP-SPLITTABLE-ALL");
 		int [] networkSizes = {50, 100, 150, 200, 250};
 		int numAlgs = 2;
 		
@@ -471,6 +482,8 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	
@@ -500,10 +513,13 @@ public class SDNRoutingSimulator {
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
+			ThreadContext.put("threadName", "PER-APP-SPLITTABLE-GEANT");
 		} else if (networkName.equals("AS1755")) {
 			Parameters.numOfNodes = 172;
+			ThreadContext.put("threadName", "PER-APP-SPLITTABLE-AS1755");
 		} else if (networkName.equals("AS4755")) {
 			Parameters.numOfNodes = 121;
+			ThreadContext.put("threadName", "PER-APP-SPLITTABLE-AS4755");
 		}
 		
 		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
@@ -575,9 +591,14 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	public static void performanceApproUnSplittableNetworkSizesBR() {
+		
+		
+		ThreadContext.put("threadName", "PER-APP-UNSPLITTABLE-ALL");
 		
 		int [] networkSizes = {100, 150, 200, 250};
 		//int [] networkSizes = {100};
@@ -596,7 +617,7 @@ public class SDNRoutingSimulator {
 		
 		Parameters.numReqs = 500;
 		
-		int numRound = 5;
+		int numRound = 1;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {		
 			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
@@ -678,6 +699,8 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	public static void performanceApproUnSplittableNumReqsBR(String networkName) {
@@ -707,12 +730,15 @@ public class SDNRoutingSimulator {
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
 			Parameters.numReqs = 300; 
+			ThreadContext.put("threadName", "PER-APP-UNSPLITTABLE-GEANT");
 		} else if (networkName.equals("AS1755")) {
 			Parameters.numOfNodes = 172;
 			Parameters.numReqs = 500; 
+			ThreadContext.put("threadName", "PER-APP-UNSPLITTABLE-AS1755");
 		} else if (networkName.equals("AS4755")) {
 			Parameters.numOfNodes = 121;
 			Parameters.numReqs = 500; 
+			ThreadContext.put("threadName", "PER-APP-UNSPLITTABLE-AS4755");
 		}
 		
 		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
@@ -785,10 +811,13 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	public static void impactOfSwitchToDCRatioOptimalBR() {
 		
+		ThreadContext.put("threadName", "IMPACT-RATIO-OPT");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] switchToDCRatios = {5, 6, 7, 8, 9, 10};
 		int numAlgs = 2;
@@ -893,10 +922,14 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 
 	
 	public static void impactOfSwitchToDCRatioSplittableBR() {
+		
+		ThreadContext.put("threadName", "IMPACT-RATIO-APP-SPLITTABLE");
 		
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] switchToDCRatios = {5, 6, 7, 8, 9, 10};
@@ -1004,9 +1037,13 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 
 	public static void impactOfSwitchToDCRatioUnSplittableBR() {
+		
+		ThreadContext.put("threadName", "IMPACT-RATIO-APP-UNSPLITTABLE");
 		
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] switchToDCRatios = {5, 6, 7, 8, 9, 10};
@@ -1035,7 +1072,6 @@ public class SDNRoutingSimulator {
 			Parameters.ServerToNodeRatio = 1 / switchToDCRatios[sizeI];					
 			Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
 
-			
 			for (int round = 0; round < numRound; round ++) {
 				
 				SDNRoutingSimulator.logger.info("Round : " + round);
@@ -1114,10 +1150,14 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
+		
 	}
 	
 	public static void impactOfMinRhoOptimalBR() {
 		
+		ThreadContext.put("threadName", "IMPACT-RHO-OPT");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] minRhos = {4, 6, 8, 10};
 		int numAlgs = 2;
@@ -1220,11 +1260,14 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 
 	
 	public static void impactOfMinRhoSplittableBR() {
 		
+		ThreadContext.put("threadName", "IMPACT-RHO-APP-SPLITTABLE");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] minRhos = {4, 6, 8, 10};
 		int numAlgs = 2;
@@ -1327,11 +1370,14 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
 	
 	
 	public static void impactOfMinRhoUnSplittableBR() {
 		
+		ThreadContext.put("threadName", "IMPACT-RHO-APP-UNSPLITTABLE");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] minRhos = {4, 6, 8, 10};
 		int numAlgs = 2;
@@ -1434,10 +1480,9 @@ public class SDNRoutingSimulator {
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
+		
+		ThreadContext.remove("threadName");
 	}
-
-	
-	
 	
 	public SimpleWeightedGraph<Node, InternetLink> getNetwork() {
 		return network;
