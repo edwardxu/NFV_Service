@@ -2,6 +2,7 @@ package system;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 import graph.Node;
 import simulation.SDNRoutingSimulator;
@@ -24,6 +25,20 @@ public class Request extends Node {
 	private Request parent = null;
 	
 	private boolean isDummy = false; 
+	
+	public static Comparator<Request> RequestPacketRateComparator = new Comparator<Request>() {
+		public int compare(Request req1, Request req2) {
+
+			Double packetRate1 = req1.getPacketRate();
+			Double packetRate2 = req2.getPacketRate();
+
+			// ascending order
+			return packetRate1.compareTo(packetRate2);
+
+			// descending order
+			// return fruitName2.compareTo(fruitName1);
+		}
+	};
 	
 	// create a virtual request, please note that this is not a clone constructor. 
 	public Request(Request parent, double dataRate) {

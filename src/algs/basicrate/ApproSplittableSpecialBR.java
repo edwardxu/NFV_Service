@@ -113,6 +113,9 @@ public class ApproSplittableSpecialBR {
 					continue; 
 				
 				Object [] scs = dc.getServiceChains().get(type).toArray();
+				int capa = (int) (scs.length / networkCapacityScaleDownRatio);
+				if (0 == capa)
+					continue; 
 				
 				ServiceChain serviceChainNode = new ServiceChain(SDNRoutingSimulator.idAllocator.nextId(), "Service Chain Node", (ServiceChain) scs[0], dc.getServiceChains().get(type).size());
 				auxiliaryGraph.addVertex(serviceChainNode);
@@ -188,9 +191,11 @@ public class ApproSplittableSpecialBR {
 			int scType = scNode.getParent().getServiceChainType();
 			double cost = dc.getCosts()[scType];
 			
+			int capa = (int) (dc.getServiceChains().get(scType).size() / networkCapacityScaleDownRatio);
+			
 			MinCostFlowEdge auEdge = auxiliaryGraph.addEdge(scNode, dc);
 			auEdge.setCost(cost);
-			int capa = (int) (dc.getServiceChains().get(scType).size() / networkCapacityScaleDownRatio);
+			//int capa = (int) (dc.getServiceChains().get(scType).size() / networkCapacityScaleDownRatio);
 			auEdge.setCapacity(capa);
 			totalCap += auEdge.getCapacity();
 		}

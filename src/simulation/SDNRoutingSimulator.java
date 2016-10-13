@@ -3,7 +3,12 @@ package simulation;
 import graph.Node;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
@@ -32,6 +37,10 @@ public class SDNRoutingSimulator {
 		
 	private FloydWarshallShortestPaths<Node, InternetLink> allPairShortestPath = null;
 	
+	public static final Logger logger = LogManager.getLogger(SDNRoutingSimulator.class);  //.getLogger(SDNRoutingSimulator.class);
+	
+	private static final ExecutorService threadPool = Executors.newWorkStealingPool(Runtime.getRuntime().availableProcessors());
+
 	public SDNRoutingSimulator() {
 		this.setSwitches(new ArrayList<Switch>());
 		this.setSwitchesAttachedDataCenters(new ArrayList<Switch>());
@@ -41,99 +50,78 @@ public class SDNRoutingSimulator {
 		
 	public static void main(String[] args) {
 		
-		String alg = args[0];
-		String network = args[1];
-		String evaType = args[2]; 
+		ArrayList<Runnable> listOfTasks = new ArrayList<>();
 		
-		if (evaType.equals("PER")){
-			if (alg.equals("OPT")){
-				switch (network) {
-				case "ALL":
-					performanceOptimalNetworkSizesBR();
-					break; 
-				case "GEANT":
-					performanceOptimalNumReqsBR("GEANT");
-					break; 
-				case "AS4755":
-					performanceOptimalNumReqsBR("AS4755");
-					break;
-				case "AS1755":
-					performanceOptimalNumReqsBR("AS1755");
-					break;
-				 default:
-			          System.out.println("Unknown argument: " + evaType + " " + alg + " " + network);
-			          System.exit(1);
-				}
-			
-			} else if (alg.equals("APP-S")){
-				switch (network) {
-				case "ALL":
-					performanceApproSplittableNetworkSizesBR();
-					break; 
-				case "GEANT":
-					performanceApproSplittableNumReqsBR("GEANT");
-					break; 
-				case "AS4755":
-					performanceApproSplittableNumReqsBR("AS4755");
-					break;
-				case "AS1755":
-					performanceApproSplittableNumReqsBR("AS1755");
-					break;
-				 default:
-			          System.out.println("Unknown argument: " + evaType + " " + alg + " " + network);
-			          System.exit(1);
-				}
-			} else if (alg.equals("APP-US")){
-				switch (network) {
-				case "ALL":
-					performanceApproUnSplittableNetworkSizesBR();
-					break; 
-				case "GEANT":
-					performanceApproUnSplittableNumReqsBR("GEANT");
-					break; 
-				case "AS4755":
-					performanceApproUnSplittableNumReqsBR("AS4755");
-					break;
-				case "AS1755":
-					performanceApproUnSplittableNumReqsBR("AS1755");
-					break;
-				 default:
-			          System.out.println("Unknown argument: " + evaType + " " + alg + " " + network);
-			          System.exit(1);
-				}
-			}
-		
-		} else if (evaType.equals("IMPACT-RATIO")) {
-			switch (alg) {
-			case "OPT":
-				impactOfSwitchToDCRatioOptimalBR();
-				break; 
-			case "APP-S":
-				impactOfSwitchToDCRatioSplittableBR();
-				break; 
-			case "APP-US":
-				impactOfSwitchToDCRatioUnSplittableBR();
+	    for (String arg : args) {
+			switch (arg) {
+			case "POA":
+				listOfTasks.add(new Thread(() -> performanceOptimalNetworkSizesBR(), "PER-OPT-ALL"));
 				break;
-			 default:
-		          System.out.println("Unknown argument: " + evaType + " " + alg + " " + network);
-		          System.exit(1);
-			}
-		} else if (evaType.equals("IMPACT-RHO")) {
-			switch (alg) {
-			case "OPT":
-				impactOfMinRhoOptimalBR();
-				break; 
-			case "APP-S":
-				impactOfMinRhoSplittableBR();
-				break; 
-			case "APP-US":
-				impactOfMinRhoUnSplittableBR();
+			case "POG":
+				listOfTasks.add(new Thread(() -> performanceOptimalNumReqsBR("GEANT"), "PER-OPT-GEANT"));
 				break;
-			 default:
-		          System.out.println("Unknown argument: " + evaType + " " + alg + " " + network);
-		          System.exit(1);
+			case "PO4755":
+				listOfTasks.add(new Thread(() -> performanceOptimalNumReqsBR("AS4755"), "PER-OPT-AS4755"));
+				break;
+			case "PO1755":
+				listOfTasks.add(new Thread(() -> performanceOptimalNumReqsBR("AS1755"), "PER-OPT-AS1755"));
+				break;
+			case "PASA":
+				listOfTasks.add(new Thread(() -> performanceApproSplittableNetworkSizesBR(), "PER-APP-SPLITTABLE-ALL"));
+				break;
+			case "PASG":
+				listOfTasks.add(new Thread(() -> performanceApproSplittableNumReqsBR("GEANT"), "PER-APP-SPLITTABLE-GEANT"));
+				break;
+			case "PAS4755":
+				listOfTasks.add(new Thread(() -> performanceApproSplittableNumReqsBR("AS4755"), "PER-APP-SPLITTABLE-AS4755"));
+				break;
+			case "PAS1755":
+				listOfTasks.add(new Thread(() -> performanceApproSplittableNumReqsBR("AS1755"), "PER-APP-SPLITTABLE-AS1755"));
+				break;
+			case "PAUA":
+				listOfTasks.add(new Thread(() -> performanceApproUnSplittableNetworkSizesBR(), "PER-APP-UNSPLITTABLE-ALL"));
+				break;
+			case "PAUG":
+				listOfTasks.add(new Thread(() -> performanceApproUnSplittableNumReqsBR("GEANT"), "PER-APP-UNSPLITTABLE-GEANT"));
+				break;
+			case "PAU4755":
+				listOfTasks.add(new Thread(() -> performanceApproUnSplittableNumReqsBR("AS4755"), "PER-APP-UNSPLITTABLE-AS4755"));
+				break;
+			case "PAU1755":
+				listOfTasks.add(new Thread(() -> performanceApproUnSplittableNumReqsBR("AS1755"), "PER-APP-UNSPLITTABLE-AS1755"));
+				break;
+			case "IRO":
+				listOfTasks.add(new Thread(() -> impactOfMinRhoOptimalBR(), "IMPACT-RHO-OPT"));
+				break; 
+			case "IRAS":
+				listOfTasks.add(new Thread(() -> impactOfMinRhoSplittableBR(), "IMPACT-RHO-APP-SPLITTABLE"));
+				break; 
+			case "IRAU":
+				listOfTasks.add(new Thread(() -> impactOfMinRhoUnSplittableBR(), "IMPACT-RHO-APP-UNSPLITTABLE"));
+				break;
+			case "IDO":
+				listOfTasks.add(new Thread(() -> impactOfSwitchToDCRatioOptimalBR(), "IMPACT-RATIO-OPT"));
+				break; 
+			case "IDAS":
+				listOfTasks.add(new Thread(() -> impactOfSwitchToDCRatioSplittableBR(), "IMPACT-RATIO-APP-SPLITTABLE"));
+				break; 
+			case "IDAU":
+				listOfTasks.add(new Thread(() -> impactOfSwitchToDCRatioUnSplittableBR(), "IMPACT-RATIO-APP-UNSPLITTABLE"));
+				break;
+			default:
+				System.out.println("Unknown argument: " + arg);
+				System.exit(1);
 			}
-		}		
+	    }
+
+	    listOfTasks.forEach(threadPool::execute);
+
+	    threadPool.shutdown();
+	    try {
+	      threadPool.awaitTermination(1L, TimeUnit.DAYS);
+	    } catch (InterruptedException ie) {
+	      ie.printStackTrace();
+	    }
 		// first set of experiments. 
 		//performanceOptimalNetworkSizesBR();
 		//performanceOptimalNumReqsBR("GEANT");
@@ -188,13 +176,13 @@ public class SDNRoutingSimulator {
 		
 		int numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {			
-			System.out.println("Number of nodes: " + networkSizes[sizeI]);
+			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
 			Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
 				if (round > 0) postFix = "-" + round;
@@ -243,31 +231,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Average cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -307,13 +295,13 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			
-			System.out.println("Number of requests in R(t): " + numOfReqs[sizeI]);
+			SDNRoutingSimulator.logger.info("Number of requests in R(t): " + numOfReqs[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			Parameters.numReqs = numOfReqs[sizeI];
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				Initialization.initUnicastRequests(simulator, false, true, true);
 				
@@ -355,31 +343,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Average cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -403,13 +391,13 @@ public class SDNRoutingSimulator {
 		
 		int numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {			
-			System.out.println("Number of nodes: " + networkSizes[sizeI]);
+			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
 			Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
 				if (round > 0) postFix = "-" + round;
@@ -457,31 +445,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Average cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -526,12 +514,12 @@ public class SDNRoutingSimulator {
 		Initialization.initEdgeWeights(simulator);
 		
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
-			System.out.println("Number of requests in R(t): " + numOfReqs[sizeI]);
+			SDNRoutingSimulator.logger.info("Number of requests in R(t): " + numOfReqs[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			Parameters.numReqs = numOfReqs[sizeI];
 			
 			for (int round = 0; round < numRound; round ++) {
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
 				// optimal solution for the problem with identical data rates. 
@@ -570,28 +558,29 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Average cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
 	public static void performanceApproUnSplittableNetworkSizesBR() {
 		
 		int [] networkSizes = {100, 150, 200, 250};
+		//int [] networkSizes = {100};
 		int numAlgs = 2;
 		
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
@@ -605,17 +594,17 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		Parameters.numReqs = 500; 
+		Parameters.numReqs = 500;
 		
 		int numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {		
-			System.out.println("Number of nodes: " + networkSizes[sizeI]);
+			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
 			Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
 				if (round > 0) postFix = "-" + round;
@@ -663,31 +652,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Average cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -734,12 +723,12 @@ public class SDNRoutingSimulator {
 		Initialization.initEdgeWeights(simulator);
 		
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
-			System.out.println("Number of requests in R(t): " + numOfReqs[sizeI]);
+			SDNRoutingSimulator.logger.info("Number of requests in R(t): " + numOfReqs[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			Parameters.numReqs = numOfReqs[sizeI];
 			
 			for (int round = 0; round < numRound; round ++) {
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
 				// optimal solution for the problem with identical data rates. 
@@ -779,22 +768,22 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Average cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -819,7 +808,7 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			
-			System.out.println("V/DC: " + switchToDCRatios[sizeI]);
+			SDNRoutingSimulator.logger.info("V/DC: " + switchToDCRatios[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.ServerToNodeRatio = 1 / switchToDCRatios[sizeI];					
@@ -828,7 +817,7 @@ public class SDNRoutingSimulator {
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
@@ -878,31 +867,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Total cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Total cost---------------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 
@@ -930,7 +919,7 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			
-			System.out.println("V/DC: " + switchToDCRatios[sizeI]);
+			SDNRoutingSimulator.logger.info("V/DC: " + switchToDCRatios[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.ServerToNodeRatio = 1 / switchToDCRatios[sizeI];					
@@ -939,7 +928,7 @@ public class SDNRoutingSimulator {
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
@@ -989,31 +978,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Total cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Total cost---------------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 
@@ -1040,7 +1029,7 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			
-			System.out.println("V/DC: " + switchToDCRatios[sizeI]);
+			SDNRoutingSimulator.logger.info("V/DC: " + switchToDCRatios[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.ServerToNodeRatio = 1 / switchToDCRatios[sizeI];					
@@ -1049,7 +1038,7 @@ public class SDNRoutingSimulator {
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
@@ -1099,31 +1088,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Total cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Total cost---------------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -1148,14 +1137,14 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			
-			System.out.println("Rho_Max/Rho_Min: " + minRhos[sizeI]);
+			SDNRoutingSimulator.logger.info("Rho_Max/Rho_Min: " + minRhos[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.minPacketRate = Parameters.maxPacketRate / minRhos[sizeI]; 
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
@@ -1205,31 +1194,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Total cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Total cost---------------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 
@@ -1255,14 +1244,14 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			
-			System.out.println("Rho_Max/Rho_Min: " + minRhos[sizeI]);
+			SDNRoutingSimulator.logger.info("Rho_Max/Rho_Min: " + minRhos[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.minPacketRate = Parameters.maxPacketRate / minRhos[sizeI]; 
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
@@ -1312,31 +1301,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Total cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Total cost---------------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 	
@@ -1362,14 +1351,14 @@ public class SDNRoutingSimulator {
 		
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			
-			System.out.println("Rho_Max/Rho_Min: " + minRhos[sizeI]);
+			SDNRoutingSimulator.logger.info("Rho_Max/Rho_Min: " + minRhos[sizeI]);
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.minPacketRate = Parameters.maxPacketRate / minRhos[sizeI]; 
 			
 			for (int round = 0; round < numRound; round ++) {
 				
-				System.out.println("Round : " + round);
+				SDNRoutingSimulator.logger.info("Round : " + round);
 				
 				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 				String postFix = "";
@@ -1419,31 +1408,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		System.out.println("Num of requests admitted------------------------");
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Total cost---------------------------------");
+		SDNRoutingSimulator.logger.info("Total cost---------------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveTotalCosts[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
-		System.out.println("Running time--------------------------");
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			
-			System.out.println(out);
+			SDNRoutingSimulator.logger.info(out);
 		}
 	}
 

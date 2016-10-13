@@ -1,6 +1,7 @@
 package algs.basicrate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,7 +40,7 @@ public class ApproUnSplittableSpecialBR {
 		if (sim == null || requests == null || requests.isEmpty())
 			throw new IllegalArgumentException("Simulator, request list should not be null or empty!");
 		
-		this.simulator = sim;	
+		this.simulator = sim;
 		this.requests = requests;
 	}
 	
@@ -48,13 +49,23 @@ public class ApproUnSplittableSpecialBR {
 		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		ArrayList<Commodity> commodities = new ArrayList<Commodity>();
 		
-		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator, this.requests, originalGraph, this.simulator.getSwitchesAttachedDataCenters(), commodities, this.simulator.getSwitchesAttachedDataCenters().size());
+//		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator, 
+//				this.requests, originalGraph, 
+//				this.simulator.getSwitchesAttachedDataCenters(), 
+//				commodities, 
+//				this.simulator.getSwitchesAttachedDataCenters().size());
+		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> flowNetwork = ApproSplittableSpecialBR.constructAuxiliaryGraph(this.simulator,
+				this.requests, originalGraph,
+				this.simulator.getSwitchesAttachedDataCenters(),
+				commodities,
+				1d);
 		// call the MCMC algorithm. 
 		MCMC flowAlg = new MCMC(flowNetwork, this.epsilon, commodities);
 		
 		ListenableDirectedWeightedGraph<Node, MinCostFlowEdge> afterFlowNetwork = flowAlg.calcMinCostFlow();
 		
 		//Set<Request> admittedReqs = new HashSet<Request>();
+		ArrayList<Request> reqsList = new ArrayList<Request>();
 		Map<Request, Map<DataCenter, Pair<Double>>> admittedReqs = new HashMap<Request, Map<DataCenter, Pair<Double>>>();
 		
 		for (MinCostFlowEdge edge : afterFlowNetwork.edgeSet()) {
@@ -63,6 +74,9 @@ public class ApproUnSplittableSpecialBR {
 					continue;
 				
 				Request req = (Request) edge.getSource();
+				if (!reqsList.contains(req))
+					reqsList.add(req);
+				
 				ServiceChain scNode = (ServiceChain) edge.getTarget();
 				DataCenter dc = scNode.getParent().getHomeDataCenter();
 				double admittedPacketRate = edge.getFlows() * Parameters.minPacketRate;
@@ -80,24 +94,33 @@ public class ApproUnSplittableSpecialBR {
 				//totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * admittedPacketRate;
 			}
 		}
+		
+		Collections.sort(reqsList, Request.RequestPacketRateComparator);
+		
+		int numAdmitted = 0;
 		// adjust assignment. 
-		for (Entry<Request, Map<DataCenter, Pair<Double>>> entry : admittedReqs.entrySet()){
+		for (Request req : reqsList) {
 			
-			Request req = entry.getKey(); 
 			DataCenter dcWithMostTraffic = null; 
 			double maxTrafficDC = -1d; 
-			for (Entry<DataCenter, Pair<Double>> entry2 : entry.getValue().entrySet()) {
+			for (Entry<DataCenter, Pair<Double>> entry2 : admittedReqs.get(req).entrySet()) {
 				if (entry2.getValue().getA() > maxTrafficDC) {
 					maxTrafficDC = entry2.getValue().getA();
 					dcWithMostTraffic = entry2.getKey();
 				}
 			}
 			
+			if (req.getPacketRate() > dcWithMostTraffic.getAvailableProcessingRate((ServiceChain) dcWithMostTraffic.getServiceChains().get(req.getServiceChainType()).toArray()[0], true)){
+				continue; 
+			}
+			
+			numAdmitted ++; 
+			
 			dcWithMostTraffic.admitRequest(req, req.getPacketRate(), (ServiceChain) dcWithMostTraffic.getServiceChains().get(req.getServiceChainType()).toArray()[0], true);
-			totalCost += req.getPacketRate() * entry.getValue().get(dcWithMostTraffic).getB();
+			totalCost += req.getPacketRate() * admittedReqs.get(req).get(dcWithMostTraffic).getB();
 		}
 		
-		this.numOfAdmittedReqs = admittedReqs.size();
+		this.numOfAdmittedReqs = numAdmitted;
 		this.averageCost = totalCost / this.numOfAdmittedReqs;
 	}
 

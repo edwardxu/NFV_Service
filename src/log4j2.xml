@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN">
+    <properties>
+        <property name="logMsgPattern">%d{HH:mm:ss} %-5level - %msg%n</property>
+        <property name="logDir">logs</property><!-- ${sys:testLogDir} -->
+    </properties>
+    <appenders>
+         <Console name="Console" target="SYSTEM_OUT">           
+            <PatternLayout pattern="${logMsgPattern}"/>
+         </Console>
+
+        <Routing name="Routing">
+                    <Routes pattern="$${thread:threadName}">             
+                        <Route>
+                            <RollingFile name="RollingFile-${thread:threadName}" fileName="${logDir}/last-${thread:threadName}.log" filePattern="${logDir}/%d{yyyy-MM-dd}/archived_%d{HH-mm}-${thread:threadName}.log">
+                                    <PatternLayout pattern="${logMsgPattern}"/>
+                                    <Policies>
+                                <OnStartupTriggeringPolicy />
+                            </Policies> 
+                    </RollingFile>
+                        </Route>
+                    </Routes>
+            </Routing>  
+    </appenders>
+
+    <loggers>               
+        <root level="debug">
+            <appender-ref ref="Console" level="debug" />
+            <appender-ref ref="Routing" level="debug"/>
+        </root>                     
+    </loggers>  
+</configuration>
