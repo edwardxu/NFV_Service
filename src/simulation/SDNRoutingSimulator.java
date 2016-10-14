@@ -3,6 +3,10 @@ package simulation;
 import graph.Node;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -17,8 +21,10 @@ import algs.basicrate.ApproSplittableSpecialBR;
 import algs.basicrate.ApproUnSplittableSpecialBR;
 import algs.basicrate.Greedy;
 import algs.basicrate.OptimalBR;
+import system.DataCenter;
 import system.InternetLink;
 import system.Request;
+import system.ServiceChain;
 import system.Switch;
 import utils.IdAllocator;
 
@@ -398,7 +404,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		Parameters.numReqs = 500; 
+		Parameters.numReqs = 500;
 		
 		int numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {			
@@ -455,6 +461,7 @@ public class SDNRoutingSimulator {
 					il.reset();
 			}
 		}
+		
 		
 		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
@@ -547,6 +554,7 @@ public class SDNRoutingSimulator {
 				
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -564,6 +572,7 @@ public class SDNRoutingSimulator {
 				
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -572,6 +581,15 @@ public class SDNRoutingSimulator {
 				for (InternetLink il : simulator.getNetwork().edgeSet())
 					il.reset();
 			}
+		}
+		
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
 		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
@@ -600,7 +618,7 @@ public class SDNRoutingSimulator {
 		
 		ThreadContext.put("threadName", "PER-APP-UNSPLITTABLE-ALL");
 		
-		int [] networkSizes = {100, 150, 200, 250};
+		int [] networkSizes = {50, 100, 150, 200, 250};
 		//int [] networkSizes = {100};
 		int numAlgs = 2;
 		
@@ -617,7 +635,7 @@ public class SDNRoutingSimulator {
 		
 		Parameters.numReqs = 500;
 		
-		int numRound = 1;
+		int numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {		
 			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
@@ -766,6 +784,7 @@ public class SDNRoutingSimulator {
 				
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -783,6 +802,7 @@ public class SDNRoutingSimulator {
 				
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -792,6 +812,15 @@ public class SDNRoutingSimulator {
 					il.reset();
 				
 			}
+		}
+		
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
 		}
 		
 		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
@@ -1173,26 +1202,31 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 3;
+		int numRound = 5;
+		
+		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, "");
+		
+		Initialization.initDataCenters(simulator, true);
+		Initialization.initEdgeWeights(simulator);
 		
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			
 			SDNRoutingSimulator.logger.info("Rho_Max/Rho_Min: " + minRhos[sizeI]);
-			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
-			
 			Parameters.minPacketRate = Parameters.maxPacketRate / minRhos[sizeI]; 
+			
+			for (Switch swDC : simulator.getSwitchesAttachedDataCenters()) {
+				DataCenter dc = swDC.getAttachedDataCenter();
+				for (Entry<Integer, HashSet<ServiceChain>> entry : dc.getServiceChains().entrySet()){
+					for (ServiceChain sc : entry.getValue()){
+						sc.setProcessingCapacity(Parameters.minPacketRate);
+					}
+				}
+			}
 			
 			for (int round = 0; round < numRound; round ++) {
 				
 				SDNRoutingSimulator.logger.info("Round : " + round);
-				
-				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-				String postFix = "";
-				if (round > 0) postFix = "-" + round;
-				Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, postFix);
-				
-				Initialization.initDataCenters(simulator, true);
-				Initialization.initEdgeWeights(simulator);
 				
 				Initialization.initUnicastRequests(simulator, false, true, true);
 				
@@ -1283,7 +1317,13 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 3;
+		int numRound = 5;
+		
+		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, "");
+		
+		Initialization.initDataCenters(simulator, true);
+		Initialization.initEdgeWeights(simulator);
 		
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			
@@ -1292,17 +1332,18 @@ public class SDNRoutingSimulator {
 			
 			Parameters.minPacketRate = Parameters.maxPacketRate / minRhos[sizeI]; 
 			
+			for (Switch swDC : simulator.getSwitchesAttachedDataCenters()) {
+				DataCenter dc = swDC.getAttachedDataCenter();
+				for (Entry<Integer, HashSet<ServiceChain>> entry : dc.getServiceChains().entrySet()){
+					for (ServiceChain sc : entry.getValue()){
+						sc.setProcessingCapacity(Parameters.minPacketRate);
+					}
+				}
+			}
+			
 			for (int round = 0; round < numRound; round ++) {
 				
 				SDNRoutingSimulator.logger.info("Round : " + round);
-				
-				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-				String postFix = "";
-				if (round > 0) postFix = "-" + round;
-				Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, postFix);
-				
-				Initialization.initDataCenters(simulator, true);
-				Initialization.initEdgeWeights(simulator);
 				
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
@@ -1393,7 +1434,13 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 3;
+		int numRound = 5;
+		
+		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, "");
+		
+		Initialization.initDataCenters(simulator, true);
+		Initialization.initEdgeWeights(simulator);
 		
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			
@@ -1401,19 +1448,18 @@ public class SDNRoutingSimulator {
 			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
 			
 			Parameters.minPacketRate = Parameters.maxPacketRate / minRhos[sizeI]; 
+			for (Switch swDC : simulator.getSwitchesAttachedDataCenters()) {
+				DataCenter dc = swDC.getAttachedDataCenter();
+				for (Entry<Integer, HashSet<ServiceChain>> entry : dc.getServiceChains().entrySet()){
+					for (ServiceChain sc : entry.getValue()){
+						sc.setProcessingCapacity(Parameters.minPacketRate);
+					}
+				}
+			}
 			
 			for (int round = 0; round < numRound; round ++) {
 				
 				SDNRoutingSimulator.logger.info("Round : " + round);
-				
-				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
-				String postFix = "";
-				if (round > 0) postFix = "-" + round;
-				Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, postFix);
-				
-				Initialization.initDataCenters(simulator, true);
-				Initialization.initEdgeWeights(simulator);
-				
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
 				// optimal solution for the problem with identical data rates. 
