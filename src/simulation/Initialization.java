@@ -59,7 +59,7 @@ public class Initialization {
 		
 		SimpleWeightedGraph<Node, InternetLink> network = simulator.getNetwork();
 		// put servers at the nodes with the top-K degrees. 
-		PlacementAlgs placeDataCenters = new PlacementAlgs(PlacementAlgs.TOP_DEGREE, network);	
+		PlacementAlgs placeDataCenters = new PlacementAlgs(PlacementAlgs.RANDOM, network);
 		ArrayList<Node> switchesWithDCs = placeDataCenters.getNodesWithServers();
 		
 		for (Node node : switchesWithDCs) {

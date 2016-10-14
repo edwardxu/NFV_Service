@@ -61,6 +61,7 @@ public class OptimalBR {
 		KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink> perfectMatching = new KuhnMunkresMinimalWeightBipartitePerfectMatching<Node, InternetLink>(bipartiteGraph, XSet, YSet);
 		Set<InternetLink> matching = perfectMatching.getMatching();
 		
+		HashSet<Request> admittedReqs = new HashSet<Request>();
 		for (InternetLink auEdge : matching) {
 			Node edgeSource = bipartiteGraph.getEdgeSource(auEdge);
 			Node edgeTarget = bipartiteGraph.getEdgeTarget(auEdge);
@@ -81,13 +82,14 @@ public class OptimalBR {
 				vSC = (ServiceChain) edgeSource; 
 			}
 			
-			DataCenter dc = vSC.getParent().getHomeDataCenter(); 
-			dc.admitRequest(admittedReq, admittedReq.getPacketRate(), vSC.getParent(), true);
-			
-			numOfAdmittedReqs ++;
-			totalCost += bipartiteGraph.getEdgeWeight(auEdge);
+			DataCenter dc = vSC.getParent().getHomeDataCenter(); 			
+			if (!admittedReqs.contains(admittedReq)){
+				dc.admitRequest(admittedReq, admittedReq.getPacketRate(), vSC.getParent(), true);
+				admittedReqs.add(admittedReq);
+				totalCost += bipartiteGraph.getEdgeWeight(auEdge);
+			}
 		}
-		
+		this.numOfAdmittedReqs = admittedReqs.size();
 		this.averageCost = this.totalCost / this.numOfAdmittedReqs;
 	
 	}

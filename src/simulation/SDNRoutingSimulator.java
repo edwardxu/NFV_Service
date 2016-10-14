@@ -3,9 +3,7 @@ package simulation;
 import graph.Node;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -183,7 +181,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 5;
+		double numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {			
 			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
@@ -287,7 +285,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 5;
+		double numRound = 1;
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
@@ -406,7 +404,7 @@ public class SDNRoutingSimulator {
 		
 		Parameters.numReqs = 500;
 		
-		int numRound = 5;
+		double numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {			
 			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
@@ -516,7 +514,7 @@ public class SDNRoutingSimulator {
 		
 		Parameters.numReqs = 500; 
 		
-		int numRound = 5;
+		double numRound = 5;
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
@@ -635,7 +633,7 @@ public class SDNRoutingSimulator {
 		
 		Parameters.numReqs = 500;
 		
-		int numRound = 5;
+		double numRound = 5;
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {		
 			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
 			Parameters.numOfNodes = networkSizes[sizeI];
@@ -743,7 +741,7 @@ public class SDNRoutingSimulator {
 		
 		
 		
-		int numRound = 5;
+		double numRound = 5;
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
@@ -862,7 +860,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 3;
+		double numRound = 5;
 		
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			
@@ -975,7 +973,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 3;
+		double numRound = 5;
 		
 		Parameters.numReqs = 500; 
 		
@@ -1089,9 +1087,9 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		Parameters.numReqs = 500; 
+		Parameters.numReqs = 500;
 		
-		int numRound = 3;
+		double numRound = 5;
 		
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			
@@ -1202,7 +1200,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 5;
+		double numRound = 5;
 		
 		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, "");
@@ -1317,7 +1315,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 5;
+		double numRound = 5;
 		
 		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, "");
@@ -1434,7 +1432,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		int numRound = 5;
+		double numRound = 5;
 		
 		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
 		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, "");

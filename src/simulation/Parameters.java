@@ -9,7 +9,7 @@ public class Parameters {
 	public static double minLinkCost = 0.05 / 16384;// to be reset
 	
 	public static double maxLinkDelay = 5; //ms
-	public static double minLinkDelay = 2; //ms 
+	public static double minLinkDelay = 2; //ms
 	
 	/*********************************Data Center************************************/
 	public static double ServerToNodeRatio = 0.1;//0.1
@@ -23,8 +23,8 @@ public class Parameters {
 	/*********************************Requests************************************/
 	public static int numReqs = 3000; //20000;
 	
-	public static int minDelayRequirement = 10; //ms
-	public static int maxDelayRequirement = 20; //100 ms
+	public static int minDelayRequirement = 5; //ms
+	public static int maxDelayRequirement = 100; //100 ms
 	
 	public static double minPacketRate = 400; // packets per second, also the basic packet rate. 
 	public static double maxPacketRate = 4000;
@@ -45,5 +45,5 @@ public class Parameters {
 	public static double [][] serviceChainProcessingCapacities = {{3000, 20000}, {1500, 10000}, {1100, 5500}, {800, 5000}, {500, 4000}};// packets per second. to be reset. 
 		
 	public static int maxNumOfInstances = 50;
-	public static int minNumOfInstances = 5;
+	public static int minNumOfInstances = 1;
 }

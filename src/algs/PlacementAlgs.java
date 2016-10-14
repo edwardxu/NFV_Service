@@ -7,6 +7,7 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 import graph.Node;
 import simulation.Parameters;
 import system.InternetLink;
+import utils.RanNum;
 
 public class PlacementAlgs {
 
@@ -55,8 +56,21 @@ public class PlacementAlgs {
 		return nodesWithServers;
 	}
 
-	public void placeServersRandomly(SimpleWeightedGraph<Node, InternetLink> network){
-		//TODO place servers in a network
+	public ArrayList<Node> placeServersRandomly(SimpleWeightedGraph<Node, InternetLink> network){
+		nodesWithServers = new ArrayList<Node>();
+		
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		for(Node node : network.vertexSet())
+			nodes.add(node);
+		
+		// place servers randomly  
+		for(int i = 0; i < Parameters.K; i ++) {
+			int nodeIndex = RanNum.getRandomIntRange(nodes.size() - 1, 0);
+			Node ranNode = nodes.get(nodeIndex);
+			nodesWithServers.add(ranNode);
+			nodes.remove(nodeIndex);
+		}
+		return nodesWithServers;
 	}
 
 	public ArrayList<Node> getNodesWithServers() {
