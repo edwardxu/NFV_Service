@@ -21,7 +21,7 @@ public class Parameters {
 	//public static int maxServersForEachSC = 3; // may vary from 2, 4, 6, 8
 	
 	/*********************************Requests************************************/
-	public static int numReqs = 3000; //20000;
+	public static int numReqs = 2000; //20000;
 	
 	public static int minDelayRequirement = 5; //ms
 	public static int maxDelayRequirement = 100; //100 ms

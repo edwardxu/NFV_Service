@@ -3,6 +3,7 @@ package system;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -76,6 +77,24 @@ public class DataCenter extends Node {
 					this.getAdmittedRequestsBR().put(req, this.getAdmittedRequestsBR().get(req) + admittedPacketRateReq);
 				}
 			}
+		}
+	}
+	
+	public void removeRequest(Request req, boolean basicRate){
+		if (!basicRate) {
+			
+			for (Entry<ServiceChain, ArrayList<Request>> entry : this.getAdmittedRequests().entrySet()){
+				for (Iterator<Request> iter = entry.getValue().iterator(); iter.hasNext(); ){
+					Request request = iter.next(); 
+					if (req.equals(request)){
+						iter.remove();
+						break; 
+					}
+					
+				}
+			}
+		} else {
+			this.getAdmittedRequestsBR().remove(req);
 		}
 	}
 	

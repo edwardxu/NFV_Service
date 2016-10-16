@@ -2,6 +2,7 @@ package algs.basicrate;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jgrapht.alg.DijkstraShortestPath;
@@ -39,8 +40,34 @@ public class ApproSplittableSpecialBR {
 		if (sim == null || requests == null || requests.isEmpty())
 			throw new IllegalArgumentException("Simulator, request list should not be null or empty!");
 		
-		this.simulator = sim;	
+		this.simulator = sim;
 		this.requests = requests;
+		
+		// enforce the assumption for the approximation algorihtms
+		double totalPacketRates = 0d;
+		for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()) {
+			DataCenter dc = swDC.getAttachedDataCenter(); 
+			for (Entry<Integer, HashSet<ServiceChain>> entry : dc.getServiceChains().entrySet()){
+				for (ServiceChain sc : entry.getValue()){
+					totalPacketRates += sc.getProcessingCapacity();
+				}				
+			}
+		}
+		
+		ArrayList<Request> newRequests = new ArrayList<Request>();
+		double totalPacketRatesRequests = 0d;
+		for (Request req : this.requests) {
+			if (totalPacketRatesRequests + req.getPacketRate() < totalPacketRates){
+				newRequests.add(req);
+				totalPacketRatesRequests += req.getPacketRate(); 
+			} else {
+				continue; 
+			}
+		}
+		
+		this.simulator.setUnicastRequests(newRequests);
+		
+		this.requests = this.simulator.getUnicastRequests();
 	}
 	
 	public void run() {
