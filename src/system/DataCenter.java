@@ -120,6 +120,13 @@ public class DataCenter extends Node {
 		}
 	}
 	
+	public double getProcessingRateCapacityType(Integer type){
+		double thisTypeSCProcessingCapacity = 0d; 
+		for (ServiceChain scThisType : this.serviceChains.get(type))
+			thisTypeSCProcessingCapacity += scThisType.getProcessingCapacity();
+		return thisTypeSCProcessingCapacity;
+	}
+	
 	public void reset() {
 		this.setAdmittedRequests(new HashMap<ServiceChain, ArrayList<Request>>());
 		this.setAdmittedRequestsBR(new HashMap<Request, Double>());

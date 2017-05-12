@@ -43,7 +43,7 @@ public class SDNRoutingSimulator {
 		
 	private FloydWarshallShortestPaths<Node, InternetLink> allPairShortestPath = null;
 	
-	public static final Logger logger = LogManager.getLogger(SDNRoutingSimulator.class);  //.getLogger(SDNRoutingSimulator.class);
+	public static final Logger logger = LogManager.getLogger(SDNRoutingSimulator.class);
 	
 	private static final ExecutorService threadPool = Executors.newWorkStealingPool(Runtime.getRuntime().availableProcessors());
 
