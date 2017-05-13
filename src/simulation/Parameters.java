@@ -46,4 +46,6 @@ public class Parameters {
 		
 	public static int maxNumOfInstances = 50;
 	public static int minNumOfInstances = 1;
+	
+	public static String LPOutputFile = ".//logs//lp_solver_log.txt";
 }
