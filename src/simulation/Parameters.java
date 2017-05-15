@@ -14,6 +14,7 @@ public class Parameters {
 	/*********************************Data Center************************************/
 	public static double ServerToNodeRatio = 0.1;//0.1
 	
+	// number of servers in a network.
 	public static int K = (int) (numOfNodes * ServerToNodeRatio);
 	
 	public static int K_small = 9; // in geant toplogy.

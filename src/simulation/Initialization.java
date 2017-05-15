@@ -147,7 +147,7 @@ public class Initialization {
 					desSwitches.add(simulator.getSwitches().get(desSwitchIndex));
 				
 				// Step 3: generate the service chain type, data rate, delay requirement of this request
-				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length - 1, 0);
+				int SCType = RanNum.getRandomIntRange(Parameters.serviceChainProcessingDelays.length, 0);
 				double dataRate = 0d;
 				
 				if (underIdenticalPacketRate)

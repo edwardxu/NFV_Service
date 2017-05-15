@@ -46,7 +46,7 @@ public class Exact {
 		}
 		
 		//TODO: adjust or refine the budget calculation
-		this.budget = (Parameters.maxLinkCost * (this.simulator.getNetwork().vertexSet().size() - 1) + Parameters.maxServiceChainCost) * Parameters.maxPacketRate * budgetScaleFactor;
+		this.budget = (Parameters.maxLinkCost * (this.simulator.getNetwork().vertexSet().size() - 1) + Parameters.maxServiceChainCost) * Parameters.maxPacketRate * budgetScaleFactor * requests.size();
 			
 	}
 
@@ -61,7 +61,7 @@ public class Exact {
 		Node sourceSwitch = req.getSourceSwitch();
 		Node destSwitch = req.getDestinationSwitches().get(0);
 		
-		DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, dc);
+		DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, dc.getAttachedSwitch());
 		double delay1 = Double.MAX_VALUE; 
 		double pathCost1 = Double.MAX_VALUE;
 		for (int i = 0; i < shortestPathSToDC.getPathEdgeList().size(); i ++) {
@@ -73,7 +73,7 @@ public class Exact {
 			pathCost1 += originalGraph.getEdgeWeight(shortestPathSToDC.getPathEdgeList().get(i));
 		}
 		
-		DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, dc, destSwitch);
+		DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, dc.getAttachedSwitch(), destSwitch);
 		double delay2 = Double.MAX_VALUE; 
 		double pathCost2 = Double.MAX_VALUE;
 		for (int i = 0; i < shortestPathDCToDest.getPathEdgeList().size(); i ++) {
@@ -95,7 +95,8 @@ public class Exact {
 		
 		try {
 			
-			int K = Parameters.K;
+			int K = Parameters.serviceChainProcessingDelays.length;
+			
 			int J = this.getRequests().size();
 			int Js [] = new int [K];
 			for (int k = 0; k < K; k ++) {
@@ -106,6 +107,7 @@ public class Exact {
 			//variables x_{ij}, for any k. 
 			int consSize = D * this.getRequests().size();
 			LpSolve solver = LpSolve.makeLp(0, consSize);
+			
 			// constraint (1)
 			for (int k = 0; k < K; k ++) {
 				for (int j = 0; j < Js[k]; j ++) {
@@ -138,8 +140,8 @@ public class Exact {
 						}
 					}
 					
-					for (int j = 0; j < Js[k]; j ++){
-						cons_2[preReqNum + j] = this.getRequestsType().get(k).get(j).getPacketRate();
+					for (int j = 0; j < Js[k]; j ++) {
+						cons_2[d * J + preReqNum + j] = this.getRequestsType().get(k).get(j).getPacketRate();
 					}
 					
 					solver.addConstraint(cons_2, LpSolve.LE, dcCapacity);
@@ -152,10 +154,10 @@ public class Exact {
 				for (int j = 0; j < J; j ++) {
 					double [] cons_3 = new double[consSize];
 					Pair<Double> delayCostPair = this.getDelayCost(this.getSimulator().getSwitchesAttachedDataCenters().get(d).getAttachedDataCenter(), this.getRequests().get(j)); 
-					cons_3[d * J + j] = delayCostPair.getA();
+					cons_3[d * J + j] = delayCostPair.getA();// delay
 					solver.addConstraint(cons_3, LpSolve.LE, this.getRequests().get(j).getDelayRequirement());
 					
-					cons_4[d * J + j] = delayCostPair.getB(); 
+					cons_4[d * J + j] = delayCostPair.getB(); // cost
 				}
 			}
 			
@@ -176,7 +178,9 @@ public class Exact {
 			
 			solver.setObjFn(objs);
 			//solver.setPresolve(1, 50000);
-			solver.setScaling(1);//;set_scaling(solver, 1);
+			//solver.setScaling(1);//;set_scaling(solver, 1);
+			solver.setMaxim();
+			
 			solver.solve();
 			
 			this.setOptimalThroughput(solver.getObjective());

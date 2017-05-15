@@ -59,21 +59,34 @@ public class Online {
 			this.requestsType.get(req.getServiceChainType()).add(req);
 		}
 		
+		int maxNumReqEachType = -1; 
+		for (int k = 0; k < Parameters.serviceChainProcessingDelays.length; k ++) {
+			if (maxNumReqEachType < this.requestsType.get(k).size() )
+				maxNumReqEachType = this.requestsType.get(k).size(); 
+		}
+		
+		this.beta = new double[Parameters.serviceChainProcessingDelays.length][maxNumReqEachType];
+		
 		// initialize arrays for beta[k][j], mu, lambda. 
-		for (int k = 0; k < Parameters.K; k ++) {
+		for (int k = 0; k < Parameters.serviceChainProcessingDelays.length; k ++) {
 			for (int j = 0; j < this.requestsType.get(k).size(); j ++) {
 				this.beta[k][j] = 0d;
 			}
 		}
+		
+		this.mu = new double[this.getSimulator().getSwitchesAttachedDataCenters().size()][Parameters.serviceChainProcessingDelays.length][maxNumReqEachType];
 		for (int i = 0; i < this.getSimulator().getSwitchesAttachedDataCenters().size(); i++){
-			for (int k = 0; k < Parameters.K; k ++) {
+			for (int k = 0; k < Parameters.serviceChainProcessingDelays.length; k ++) {
 				for (int j = 0; j < this.requestsType.get(k).size(); j ++) {
 					this.mu[i][k][j] = 0d;
 				}
 			}
 		}
+		
+		this.lambda = new double[this.getSimulator().getSwitchesAttachedDataCenters().size()][Parameters.serviceChainProcessingDelays.length];
+		
 		for (int i = 0; i < this.getSimulator().getSwitchesAttachedDataCenters().size(); i++){
-			for (int k = 0; k < Parameters.K; k ++) {
+			for (int k = 0; k < Parameters.serviceChainProcessingDelays.length; k ++) {
 				this.lambda[i][k] = 0d;
 			}
 		}
@@ -81,17 +94,17 @@ public class Online {
 		this.theta = 0d; 
 		
 		//TODO: adjust or refine the budget calculation
-		this.budget = (Parameters.maxLinkCost * (this.simulator.getNetwork().vertexSet().size() - 1) + Parameters.maxServiceChainCost) * Parameters.maxPacketRate * budgetScaleFactor;
+		this.budget = (Parameters.maxLinkCost * (this.simulator.getNetwork().vertexSet().size() - 1) + Parameters.maxServiceChainCost) * Parameters.maxPacketRate * budgetScaleFactor * requests.size();
 	}
 	
 	public void run() {
 		// online algorithm based on primal-dual approach.
 		
-		Map<DataCenter, Double> shadowPrices = new HashMap<DataCenter, Double>();
-		for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()) {
-			DataCenter dc = swDC.getAttachedDataCenter();
-			shadowPrices.put(dc, 0d);
-		}
+//		Map<DataCenter, Double> shadowPrices = new HashMap<DataCenter, Double>();
+//		for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()) {
+//			DataCenter dc = swDC.getAttachedDataCenter();
+//			shadowPrices.put(dc, 0d);
+//		}
 		
 		double Delta = calculateDelta();
 		
@@ -107,7 +120,7 @@ public class Online {
 			Map<DataCenter, Double> costsForThisReq = retTripleDCListDelays.getC();
 			
 			// get dc with minimum shadow price
-			HPair<DataCenter, Double> retPairShadowPriceDCList = minShadowPriceDataCenter(shadowPrices, dcsMeetDelay);
+			HPair<DataCenter, Double> retPairShadowPriceDCList = minShadowPriceDataCenter(dcsMeetDelay, request, costsForThisReq);
 			DataCenter minShadowPriceDC = retPairShadowPriceDCList.getA();
 			Double minShadowPrice = retPairShadowPriceDCList.getB();
 			
@@ -134,7 +147,7 @@ public class Online {
 		 
 		int i = 0;
 		for (; i < this.simulator.getSwitchesAttachedDataCenters().size(); i ++) {
-			if (this.simulator.getSwitchesAttachedDataCenters().get(i).equals(dc))
+			if (this.simulator.getSwitchesAttachedDataCenters().get(i).getAttachedDataCenter().equals(dc))
 				break;
 		}
 		int k = request.getServiceChainType();
@@ -197,7 +210,7 @@ public class Online {
 			Node sourceSwitch = req.getSourceSwitch();
 			Node destSwitch = req.getDestinationSwitches().get(0);
 			
-			DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, dc);
+			DijkstraShortestPath<Node, InternetLink> shortestPathSToDC = new DijkstraShortestPath<Node, InternetLink>(originalGraph, sourceSwitch, dc.getAttachedSwitch());
 			double delay1 = Double.MAX_VALUE; 
 			double pathCost1 = Double.MAX_VALUE;
 			for (int i = 0; i < shortestPathSToDC.getPathEdgeList().size(); i ++) {
@@ -209,7 +222,7 @@ public class Online {
 				pathCost1 += originalGraph.getEdgeWeight(shortestPathSToDC.getPathEdgeList().get(i));
 			}
 			
-			DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, dc, destSwitch);
+			DijkstraShortestPath<Node, InternetLink> shortestPathDCToDest = new DijkstraShortestPath<Node, InternetLink>(originalGraph, dc.getAttachedSwitch(), destSwitch);
 			double delay2 = Double.MAX_VALUE; 
 			double pathCost2 = Double.MAX_VALUE;
 			for (int i = 0; i < shortestPathDCToDest.getPathEdgeList().size(); i ++) {
@@ -233,14 +246,30 @@ public class Online {
 		return new HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>>(retDCS, DCDelays, DCCosts);
 	}
 	
-	private HPair<DataCenter, Double> minShadowPriceDataCenter(Map<DataCenter, Double> shadowPrices, ArrayList<DataCenter> datacentersMeetDelay){
+	private HPair<DataCenter, Double> minShadowPriceDataCenter(ArrayList<DataCenter> datacentersMeetDelay, Request req, Map<DataCenter, Double> costsForThisReq){
 		
 		double minShadowPrice = Double.MAX_VALUE;
 		DataCenter minShadowPriceDC = null;
 		
-		for (DataCenter dc : datacentersMeetDelay){
-			if (shadowPrices.get(dc) < minShadowPrice) {
-				minShadowPrice = shadowPrices.get(dc);
+		for (DataCenter dc : datacentersMeetDelay) {
+			
+			int i = 0;
+			for (; i < this.simulator.getSwitchesAttachedDataCenters().size(); i ++) {
+				if (this.simulator.getSwitchesAttachedDataCenters().get(i).getAttachedDataCenter().equals(dc))
+					break;
+			}
+			int k = req.getServiceChainType();
+			
+			int j = 0;
+			for (; j < this.requestsType.get(k).size(); j ++){
+				if (this.requestsType.get(k).get(j).equals(req))
+					break;
+			}
+			
+			double shadowPrice = this.lambda[i][k] + this.theta * costsForThisReq.get(dc); 
+			
+			if (shadowPrice < minShadowPrice) {
+				minShadowPrice = shadowPrice;
 				minShadowPriceDC = dc;
 			}
 		}

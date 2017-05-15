@@ -117,6 +117,17 @@ public class SDNRoutingSimulator {
 			case "IDAU":
 				listOfTasks.add(new Thread(() -> impactOfDCNumUnSplittableBR(), "IMPACT-RATIO-APP-UNSPLITTABLE"));
 				break;
+			case "POnlineA":
+				listOfTasks.add(new Thread(() -> performanceOnlineNetworkSizesBR(), "PER-ONLINE-ALL"));
+				break;
+			case "POnlineG":
+				listOfTasks.add(new Thread(() -> performanceOnlineNumReqsBR("GEANT"), "PER-ONLINE-GEANT"));
+				break;
+			case "POnline4755":
+				listOfTasks.add(new Thread(() -> performanceOnlineNumReqsBR("AS4755"), "PER-ONLINE-AS4755"));
+				break;
+			case "POnline1755":
+				listOfTasks.add(new Thread(() -> performanceOnlineNumReqsBR("AS1755"), "PER-ONLINE-AS1755"));
 			default:
 				System.out.println("Unknown argument: " + arg);
 				System.exit(1);
