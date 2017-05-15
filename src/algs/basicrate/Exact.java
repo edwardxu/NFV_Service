@@ -113,7 +113,7 @@ public class Exact {
 				for (int j = 0; j < Js[k]; j ++) {
 					double [] cons_1 = new double[consSize];
 					
-					int preReqNum = 0; 
+					int preReqNum = 0;
 					if (k >= 1) {
 						for (int kk = 0; kk < k; kk++){
 							preReqNum += Js[kk];
@@ -124,7 +124,7 @@ public class Exact {
 					for (int d = 0; d < D; d ++) {
 						cons_1 [d * J + j_original] = 1;  
 					}
-					solver.addConstraint(cons_1, LpSolve.LE, 1.0);
+					solver.addConstraint(cons_1, LpSolve.LE, 1d);
 				}
 			}
 			
@@ -184,6 +184,7 @@ public class Exact {
 			solver.solve();
 			
 			this.setOptimalThroughput(solver.getObjective());
+			
 			// print solution
 			//System.out.println("Lower bound of optimal cost : " + this.optimalCostLowerBound);
 			//double[] vars = solver.getPtrVariables();

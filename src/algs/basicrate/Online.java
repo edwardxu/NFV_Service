@@ -129,13 +129,15 @@ public class Online {
 			assert(threshold < 0 ) : "threshold should be positive";
 			
 			if (minShadowPrice <= threshold) {
-				// admit this request 
-				this.numOfAdmittedReqs ++;
-				this.totalPktRateOfAdmittedReqs += request.getPacketRate();
-				this.totalCost += costsForThisReq.get(minShadowPriceDC);
 				// update dual variables
-				updateDualVariables(request, minShadowPriceDC, Delta, delaysForThisReq.get(minShadowPriceDC), costsForThisReq.get(minShadowPriceDC));
-				minShadowPriceDC.admitRequest(request, request.getPacketRate(), dummySC, true);
+				if (minShadowPriceDC.admitRequest(request, request.getPacketRate(), dummySC, true)) {
+					// admit this request 
+					updateDualVariables(request, minShadowPriceDC, Delta, delaysForThisReq.get(minShadowPriceDC), costsForThisReq.get(minShadowPriceDC));
+					this.numOfAdmittedReqs ++;
+					this.totalPktRateOfAdmittedReqs += request.getPacketRate();
+					this.totalCost += costsForThisReq.get(minShadowPriceDC);
+					
+				}
 			}
 		}
 	}

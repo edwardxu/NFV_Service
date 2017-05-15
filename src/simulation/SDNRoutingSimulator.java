@@ -1335,7 +1335,8 @@ public class SDNRoutingSimulator {
 	public static void performanceOnlineNetworkSizesBR() {
 		
 		ThreadContext.put("threadName", "PER-ONLINE-ALL");
-		int [] networkSizes = {50, 100, 150, 200, 250};
+		//int [] networkSizes = {50, 100, 150, 200, 250};
+		int [] networkSizes = {50, 100};
 		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
@@ -1398,7 +1399,7 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (onlineAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][1] += (onlineAlg.getTotalCost() / numRound);			
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (onlineAlg.getNumOfAdmittedReqs() / numRound);
 				aveTotalPktRateOfAdmitted[sizeI][1] += (onlineAlg.getTotalPktRateOfAdmittedReqs() / numRound);

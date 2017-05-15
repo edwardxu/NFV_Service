@@ -30,7 +30,7 @@ public class OnlineGreedy {
 	
 	// greedy approach that processes requests greedily without resource reservation
 	public void run() {
-		// online algorithm based on primal-dual approach.		
+		// online algorithm based on primal-dual approach.
 		for (Request request : this.getRequests()) {
 			// dummy service chain instance for this request. 
 			ServiceChain dummySC = new ServiceChain(SDNRoutingSimulator.idAllocator.nextId(), "Dummy SC", request.getServiceChainType(), true);
@@ -44,20 +44,19 @@ public class OnlineGreedy {
 			DataCenter dcMinCost = null; 
 			Double minCost = Double.MAX_VALUE;
 			for (DataCenter dc : dcsMeetDelay) {
-				if (dc.getAvailableProcessingRate(dummySC, true) >= request.getPacketRate()){
-					if (minCost > costsForThisReq.get(dc)){
-						minCost = costsForThisReq.get(dc);
-						dcMinCost = dc; 
-					}	
+				if (minCost > costsForThisReq.get(dc)) {
+					minCost = costsForThisReq.get(dc);
+					dcMinCost = dc; 
 				}
 			}
 			
-			if (null != dcMinCost){
+			if (null != dcMinCost) {
 				// admit this request.
-				dcMinCost.admitRequest(request, request.getPacketRate(), dummySC, true);
-				this.numOfAdmittedReqs ++;
-				this.totalCost += costsForThisReq.get(dcMinCost);
-				this.totalPktRateOfAdmittedReqs += request.getPacketRate();
+				if (dcMinCost.admitRequest(request, request.getPacketRate(), dummySC, true)) {
+					this.numOfAdmittedReqs ++;
+					this.totalCost += costsForThisReq.get(dcMinCost);
+					this.totalPktRateOfAdmittedReqs += request.getPacketRate();
+				}
 			}
 		}
 	}

@@ -52,12 +52,14 @@ public class DataCenter extends Node {
 		}
 	}
 	
-	public void admitRequest(Request req, double admittedPacketRateReq, ServiceChain sc, boolean basicRate) {
+	public boolean admitRequest(Request req, double admittedPacketRateReq, ServiceChain sc, boolean basicRate) {
 		
 		if (!basicRate) {
 			double availableRateThisSC = this.getAvailableProcessingRate(sc, basicRate);
-			if (availableRateThisSC < req.getPacketRate())
+			if (availableRateThisSC < req.getPacketRate()) {
 				SDNRoutingSimulator.logger.info("Error: available computing resource is not enough to admit service chain " + sc.getName());
+				return false; 
+			}
 			else {
 				if (null == this.getAdmittedRequests().get(sc))
 					this.getAdmittedRequests().put(sc, new ArrayList<Request>());
@@ -65,9 +67,10 @@ public class DataCenter extends Node {
 			}
 		} else {
 			double availableRateThisTypeSC = this.getAvailableProcessingRate(sc, basicRate);
-			if (availableRateThisTypeSC < admittedPacketRateReq)
+			if (availableRateThisTypeSC < admittedPacketRateReq){
 				SDNRoutingSimulator.logger.info("Error: available computing resource is not enough to admit service chain " + sc.getName());
-			else {
+				return false; 
+			} else {
 				if (null == this.getAdmittedRequestsBR().get(req))
 					this.getAdmittedRequestsBR().put(req, 0d);
 				
@@ -78,6 +81,8 @@ public class DataCenter extends Node {
 				}
 			}
 		}
+		
+		return true; 
 	}
 	
 	public void removeRequest(Request req, boolean basicRate){
