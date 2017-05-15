@@ -20,6 +20,8 @@ public class OnlineGreedy {
 	private double averageCost = 0d; 
 	
 	private int numOfAdmittedReqs = 0;
+	
+	private double totalPktRateOfAdmittedReqs = 0d;
 
 	public OnlineGreedy (SDNRoutingSimulator sim, ArrayList<Request> requests, double budgetScaleFactor) {
 		this.setSimulator(sim);	
@@ -55,6 +57,7 @@ public class OnlineGreedy {
 				dcMinCost.admitRequest(request, request.getPacketRate(), dummySC, true);
 				this.numOfAdmittedReqs ++;
 				this.totalCost += costsForThisReq.get(dcMinCost);
+				this.totalPktRateOfAdmittedReqs += request.getPacketRate();
 			}
 		}
 	}
@@ -97,5 +100,13 @@ public class OnlineGreedy {
 
 	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	}
 }

@@ -35,6 +35,8 @@ public class ApproUnSplittableSpecialBR {
 	
 	private int numOfAdmittedReqs = 0;
 	
+	private double totalPktRateOfAdmittedReqs = 0d;
+	
 	private double epsilon = 0.07;
 	
 	public ApproUnSplittableSpecialBR(SDNRoutingSimulator sim, ArrayList<Request> requests) {
@@ -148,6 +150,8 @@ public class ApproUnSplittableSpecialBR {
 			
 			dcWithMostTraffic.admitRequest(req, req.getPacketRate(), (ServiceChain) dcWithMostTraffic.getServiceChains().get(req.getServiceChainType()).toArray()[0], true);
 			totalCost += req.getPacketRate() * admittedReqs.get(req).get(dcWithMostTraffic).getB();
+			
+			this.totalPktRateOfAdmittedReqs += req.getPacketRate();
 		}
 		
 		this.numOfAdmittedReqs = numAdmitted;
@@ -200,6 +204,14 @@ public class ApproUnSplittableSpecialBR {
 
 	public void setEpsilon(double epsilon) {
 		this.epsilon = epsilon;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	} 
 	
 

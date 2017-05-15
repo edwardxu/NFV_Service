@@ -33,6 +33,8 @@ public class ApproSplittableSpecialBR {
 	
 	private int numOfAdmittedReqs = 0;
 	
+	private double totalPktRateOfAdmittedReqs = 0d;
+	
 	private double epsilon = 0.1; 
 	
 	public ApproSplittableSpecialBR(SDNRoutingSimulator sim, ArrayList<Request> requests) {
@@ -95,7 +97,8 @@ public class ApproSplittableSpecialBR {
 				
 				admittedReqs.add(req);
 				
-				totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * edge.getFlows();
+				this.totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * edge.getFlows();
+				this.totalPktRateOfAdmittedReqs += req.getPacketRate();
 			}
 		}
 		
@@ -276,6 +279,14 @@ public class ApproSplittableSpecialBR {
 
 	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	}
 	
 	

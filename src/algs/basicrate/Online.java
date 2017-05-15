@@ -1,4 +1,4 @@
-package algs;
+package algs.basicrate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +13,7 @@ import simulation.SDNRoutingSimulator;
 import system.DataCenter;
 import system.InternetLink;
 import system.Request;
+import system.ServiceChain;
 import system.Switch;
 import utils.HPair;
 import utils.HTriple;
@@ -21,7 +22,7 @@ public class Online {
 
 	private SDNRoutingSimulator simulator = null;
 	
-	private ArrayList<Request> requests = null; 
+	private ArrayList<Request> requests = null;//all requests that arrive at the system one by one
 	
 	private Map<Integer, ArrayList<Request>> requestsType = new HashMap<Integer, ArrayList<Request>>();
 	
@@ -30,6 +31,8 @@ public class Online {
 	private double averageCost = 0d; 
 	
 	private int numOfAdmittedReqs = 0;
+	
+	private double totalPktRateOfAdmittedReqs = 0d;
 	
 	// dual variables, initialized to zeros. 
 	
@@ -49,13 +52,14 @@ public class Online {
 		this.setSimulator(sim);	
 		this.setRequests(requests);
 		
+		// organize the requests into different types
 		for (Request req : requests) {
 			if (null == this.requestsType.get(req.getServiceChainType()))
 				this.requestsType.put(req.getServiceChainType(), new ArrayList<Request>());
 			this.requestsType.get(req.getServiceChainType()).add(req);
 		}
 		
-		// initialize arrays for beta, mu, lambda. 
+		// initialize arrays for beta[k][j], mu, lambda. 
 		for (int k = 0; k < Parameters.K; k ++) {
 			for (int j = 0; j < this.requestsType.get(k).size(); j ++) {
 				this.beta[k][j] = 0d;
@@ -70,7 +74,7 @@ public class Online {
 		}
 		for (int i = 0; i < this.getSimulator().getSwitchesAttachedDataCenters().size(); i++){
 			for (int k = 0; k < Parameters.K; k ++) {
-				this.lambda[i][k] = 0d; 
+				this.lambda[i][k] = 0d;
 			}
 		}
 		
@@ -84,7 +88,7 @@ public class Online {
 		// online algorithm based on primal-dual approach.
 		
 		Map<DataCenter, Double> shadowPrices = new HashMap<DataCenter, Double>();
-		for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()){
+		for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()) {
 			DataCenter dc = swDC.getAttachedDataCenter();
 			shadowPrices.put(dc, 0d);
 		}
@@ -92,8 +96,12 @@ public class Online {
 		double Delta = calculateDelta();
 		
 		for (Request request : this.getRequests()) {
-			// find the data center with the minimum shadow price. 
-			HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>> retTripleDCListDelays = getDataCentersMeetDelayRequirement(request);
+			
+			// dummy service chain instance for this request. 
+			ServiceChain dummySC = new ServiceChain(SDNRoutingSimulator.idAllocator.nextId(), "Dummy SC", request.getServiceChainType(), true);
+
+			// find the data center with the minimum shadow price.
+			HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>> retTripleDCListDelays = Online.getDataCentersMeetDelayRequirement(this.getSimulator(), request);
 			ArrayList<DataCenter> dcsMeetDelay = retTripleDCListDelays.getA();
 			Map<DataCenter, Double> delaysForThisReq = retTripleDCListDelays.getB();
 			Map<DataCenter, Double> costsForThisReq = retTripleDCListDelays.getC();
@@ -108,11 +116,13 @@ public class Online {
 			assert(threshold < 0 ) : "threshold should be positive";
 			
 			if (minShadowPrice <= threshold) {
-				// accept this request 
+				// admit this request 
 				this.numOfAdmittedReqs ++;
+				this.totalPktRateOfAdmittedReqs += request.getPacketRate();
 				this.totalCost += costsForThisReq.get(minShadowPriceDC);
 				// update dual variables
 				updateDualVariables(request, minShadowPriceDC, Delta, delaysForThisReq.get(minShadowPriceDC), costsForThisReq.get(minShadowPriceDC));
+				minShadowPriceDC.admitRequest(request, request.getPacketRate(), dummySC, true);
 			}
 		}
 	}
@@ -147,7 +157,7 @@ public class Online {
 		double maxCost = -1; 
 		for (Request request : this.getRequests()) {
 			// find the data center with the minimum shadow price. 
-			HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>> retTripleDCListDelays = getDataCentersMeetDelayRequirement(request);
+			HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>> retTripleDCListDelays = Online.getDataCentersMeetDelayRequirement(this.getSimulator(), request);
 			ArrayList<DataCenter> dcsMeetDelay = retTripleDCListDelays.getA();
 			Map<DataCenter, Double> delaysForThisReq = retTripleDCListDelays.getB();
 			Map<DataCenter, Double> costsForThisReq = retTripleDCListDelays.getC();
@@ -171,15 +181,17 @@ public class Online {
 	}
 		
 	// map1: data center --> delay, map2: data center --> cost
-	private HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>> getDataCentersMeetDelayRequirement(Request req) {
+	public static HTriple<ArrayList<DataCenter>, Map<DataCenter, Double>, Map<DataCenter, Double>> getDataCentersMeetDelayRequirement(
+			SDNRoutingSimulator simulator, 
+			Request req) {
 		
 		ArrayList<DataCenter> retDCS = new ArrayList<DataCenter>();
 		Map<DataCenter, Double> DCDelays = new HashMap<DataCenter, Double>();
 		Map<DataCenter, Double> DCCosts = new HashMap<DataCenter, Double>();
 		
-		SimpleWeightedGraph<Node, InternetLink> originalGraph = this.simulator.getNetwork();
+		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		
-		for (Switch swDC : this.simulator.getSwitchesAttachedDataCenters()){
+		for (Switch swDC : simulator.getSwitchesAttachedDataCenters()){
 			DataCenter dc = swDC.getAttachedDataCenter();
 			
 			Node sourceSwitch = req.getSourceSwitch();
@@ -274,5 +286,13 @@ public class Online {
 
 	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	}
 }

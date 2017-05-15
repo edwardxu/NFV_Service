@@ -29,6 +29,8 @@ public class GreedySplittable {
 	private double averageCost = 0d;
 
 	private int numOfAdmittedReqs = 0;
+	
+	private double totalPktRateOfAdmittedReqs = 0d;
 
 	public GreedySplittable(SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		if (sim == null || requests == null || requests.isEmpty())
@@ -145,6 +147,7 @@ public class GreedySplittable {
 					admittedReqs.add(req);
 					// calculate the cost of implementing this request;
 					this.totalCost += (minCost * admittedPacketRate);
+					this.totalPktRateOfAdmittedReqs += admittedPacketRate; 
 
 					// preAdmissions.
 					if (null == preAdmissions.get(req))
@@ -201,6 +204,14 @@ public class GreedySplittable {
 
 	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	}
 
 }

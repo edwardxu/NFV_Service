@@ -10,7 +10,7 @@
          </Console>
 
         <Routing name="Routing">
-                    <Routes pattern="$${ctx:threadName}">             
+                    <Routes pattern="$${ctx:threadName}">            
                         <Route>
                             <RollingFile name="RollingFile-${ctx:threadName}" fileName="${logDir}/last-${ctx:threadName}.log" filePattern="${logDir}/%d{yyyy-MM-dd}/archived_%d{HH-mm}-${ctx:threadName}.log">
                                     <PatternLayout pattern="${logMsgPattern}"/>
@@ -27,6 +27,6 @@
         <root level="debug">
             <appender-ref ref="Console" level="debug" />
             <appender-ref ref="Routing" level="debug"/>
-        </root>                     
-    </loggers>  
+        </root>       
+    </loggers> 
 </configuration>

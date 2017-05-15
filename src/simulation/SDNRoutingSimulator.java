@@ -172,11 +172,13 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
 		double [][] aveRunningTime = new double [networkSizes.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [networkSizes.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [networkSizes.length][numAlgs];
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
 			}
 		}
 		
@@ -211,6 +213,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -229,6 +232,8 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -244,6 +249,15 @@ public class SDNRoutingSimulator {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -278,11 +292,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [numOfReqs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfReqs.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
 			}
 		}
 		
@@ -328,6 +345,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -346,7 +364,8 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+
 				// reset 
 				for (Switch sw : simulator.getSwitches())
 					sw.reset();
@@ -361,6 +380,15 @@ public class SDNRoutingSimulator {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -394,12 +422,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveRunningTime = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [switchToDCRatios.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [switchToDCRatios.length][numAlgs];
 		
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -444,6 +474,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -462,6 +493,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -477,6 +509,15 @@ public class SDNRoutingSimulator {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
+			String out = switchToDCRatios[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -512,12 +553,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
 		double [][] aveRunningTime = new double [networkSizes.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [networkSizes.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [networkSizes.length][numAlgs];
 		
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
 			}
 		}
 				
@@ -552,6 +595,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -570,6 +614,8 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -586,6 +632,15 @@ public class SDNRoutingSimulator {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -621,11 +676,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveRunningTime = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [switchToDCRatios.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [switchToDCRatios.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -669,6 +727,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound); 
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -687,6 +746,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -702,6 +762,15 @@ public class SDNRoutingSimulator {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
+			String out = switchToDCRatios[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -740,11 +809,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [numOfReqs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfReqs.length][numAlgs];
+		
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -788,6 +860,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -806,6 +879,8 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -821,6 +896,15 @@ public class SDNRoutingSimulator {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -857,11 +941,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
 		double [][] aveRunningTime = new double [networkSizes.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [networkSizes.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [networkSizes.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
 			}
 		}
 		
@@ -894,6 +981,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -912,6 +1000,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -927,6 +1016,15 @@ public class SDNRoutingSimulator {
 			String out = networkSizes[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -964,15 +1062,16 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [numOfReqs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfReqs.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
-		
-		
 		
 		double numRound = 2;
 		//changeNumOfNodes(network_sizes[sizeI]);
@@ -1016,6 +1115,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1034,6 +1134,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound); 
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1050,6 +1151,15 @@ public class SDNRoutingSimulator {
 			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1085,11 +1195,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveRunningTime = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [switchToDCRatios.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [switchToDCRatios.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -1135,6 +1248,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1153,6 +1267,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1169,6 +1284,15 @@ public class SDNRoutingSimulator {
 			String out = switchToDCRatios[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
+			String out = switchToDCRatios[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1204,11 +1328,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [numOfDCs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfDCs.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [numOfDCs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfDCs.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < numOfDCs.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -1243,6 +1370,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1261,6 +1389,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1276,6 +1405,15 @@ public class SDNRoutingSimulator {
 			String out = numOfDCs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfDCs.length; sizeI ++) {
+			String out = numOfDCs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1312,11 +1450,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [numOfDCs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfDCs.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [numOfDCs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfDCs.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < numOfDCs.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -1351,6 +1492,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1369,6 +1511,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1384,6 +1527,15 @@ public class SDNRoutingSimulator {
 			String out = numOfDCs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfDCs.length; sizeI ++) {
+			String out = numOfDCs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1419,11 +1571,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [numOfDCs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfDCs.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [numOfDCs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfDCs.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < numOfDCs.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
 			}
 		}
 		
@@ -1459,6 +1614,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1477,6 +1633,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1492,6 +1649,15 @@ public class SDNRoutingSimulator {
 			String out = numOfDCs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfDCs.length; sizeI ++) {
+			String out = numOfDCs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1528,11 +1694,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [minRhos.length][numAlgs];
 		double [][] aveRunningTime = new double [minRhos.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [minRhos.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [minRhos.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -1574,6 +1743,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (optAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1592,6 +1762,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1607,6 +1778,15 @@ public class SDNRoutingSimulator {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
+			String out = minRhos[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1643,11 +1823,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [minRhos.length][numAlgs];
 		double [][] aveRunningTime = new double [minRhos.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [minRhos.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [minRhos.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -1691,6 +1874,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1709,6 +1893,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1724,6 +1909,15 @@ public class SDNRoutingSimulator {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
+			String out = minRhos[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}
@@ -1760,11 +1954,14 @@ public class SDNRoutingSimulator {
 		double [][] aveTotalCosts = new double [minRhos.length][numAlgs];
 		double [][] aveRunningTime = new double [minRhos.length][numAlgs];
 		double [][] aveNumOfAdmitted = new double [minRhos.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [minRhos.length][numAlgs];
+
 		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
 			for (int j = 0; j < numAlgs; j ++) {
 				aveTotalCosts[sizeI][j] = 0d;
 				aveRunningTime[sizeI][j] = 0d;
 				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d; 
 			}
 		}
 		
@@ -1806,6 +2003,7 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1824,6 +2022,8 @@ public class SDNRoutingSimulator {
 				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][1] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1839,6 +2039,15 @@ public class SDNRoutingSimulator {
 			String out = minRhos[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < minRhos.length; sizeI ++) {
+			String out = minRhos[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
 			
 			SDNRoutingSimulator.logger.info(out);
 		}

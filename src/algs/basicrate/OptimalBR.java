@@ -30,6 +30,8 @@ public class OptimalBR {
 	
 	private int numOfAdmittedReqs = 0;
 	
+	private double totalPktRateOfAdmittedReqs = 0d; 
+	
 	public OptimalBR(SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		
 		if (sim == null || requests == null || requests.isEmpty())
@@ -91,7 +93,9 @@ public class OptimalBR {
 		}
 		this.numOfAdmittedReqs = admittedReqs.size();
 		this.averageCost = this.totalCost / this.numOfAdmittedReqs;
-	
+		for (Request req : admittedReqs) {
+			this.totalPktRateOfAdmittedReqs += req.getPacketRate();
+		}
 	}
 	
 	private SimpleWeightedGraph<Node, InternetLink> constructAuxiliaryGraph(
@@ -265,5 +269,13 @@ public class OptimalBR {
 
 	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	}
 }

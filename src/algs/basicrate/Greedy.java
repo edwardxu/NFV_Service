@@ -26,6 +26,8 @@ public class Greedy {
 	
 	private int numOfAdmittedReqs = 0;
 	
+	private double totalPktRateOfAdmittedReqs = 0d;
+	
 	public Greedy(SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		if (sim == null || requests == null || requests.isEmpty())
 			throw new IllegalArgumentException("Simulator, request list should not be null or empty!");
@@ -100,6 +102,7 @@ public class Greedy {
 				admittedReqs.add(req);
 				// calculate the cost of implementing this request;
 				this.totalCost += (minCost * req.getPacketRate()); 
+				this.totalPktRateOfAdmittedReqs += req.getPacketRate();
 			}
 		}
 		
@@ -145,6 +148,14 @@ public class Greedy {
 
 	public void setNumOfAdmittedReqs(int numOfAdmittedReqs) {
 		this.numOfAdmittedReqs = numOfAdmittedReqs;
+	}
+
+	public double getTotalPktRateOfAdmittedReqs() {
+		return totalPktRateOfAdmittedReqs;
+	}
+
+	public void setTotalPktRateOfAdmittedReqs(double totalPktRateOfAdmittedReqs) {
+		this.totalPktRateOfAdmittedReqs = totalPktRateOfAdmittedReqs;
 	}
 	
 

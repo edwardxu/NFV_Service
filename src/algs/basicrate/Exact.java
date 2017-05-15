@@ -17,7 +17,7 @@ import system.InternetLink;
 import system.Request;
 import utils.Pair;
 
-public class ILP {
+public class Exact {
 
 	private SDNRoutingSimulator simulator = null;
 	
@@ -35,7 +35,7 @@ public class ILP {
 
 	private double optimalThroughput;
 	
-	public ILP (SDNRoutingSimulator sim, ArrayList<Request> requests, double budgetScaleFactor) {
+	public Exact (SDNRoutingSimulator sim, ArrayList<Request> requests, double budgetScaleFactor) {
 		this.setSimulator(sim);	
 		this.setRequests(requests);
 		// organize the requests into different types
@@ -51,10 +51,7 @@ public class ILP {
 	}
 
 	public void run() {
-		
-		;
-		
-		
+		solveLP(true);
 	}
 	
 	public Pair<Double> getDelayCost(DataCenter dc, Request req){
