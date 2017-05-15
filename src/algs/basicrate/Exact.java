@@ -94,7 +94,6 @@ public class Exact {
 	public void solveLP(boolean relax) {  
 		
 		try {
-			
 			int K = Parameters.serviceChainProcessingDelays.length;
 			
 			int J = this.getRequests().size();
@@ -115,7 +114,7 @@ public class Exact {
 					
 					int preReqNum = 0;
 					if (k >= 1) {
-						for (int kk = 0; kk < k; kk++){
+						for (int kk = 0; kk < k; kk++) {
 							preReqNum += Js[kk];
 						}
 					}
@@ -184,6 +183,20 @@ public class Exact {
 			solver.solve();
 			
 			this.setOptimalThroughput(solver.getObjective());
+			
+			// number of admitted requests
+			double [] variables = solver.getPtrVariables();
+			for (int ii = 0; ii < consSize; ii ++ )
+				this.numOfAdmittedReqs += variables[ii];
+			
+			// cost of implementing admitted requests
+			for (int d = 0; d < D; d ++) {
+				for (int j = 0; j < J; j ++) {
+					Pair<Double> delayCostPair = this.getDelayCost(this.getSimulator().getSwitchesAttachedDataCenters().get(d).getAttachedDataCenter(), this.getRequests().get(j)); 
+					Double cost = delayCostPair.getB();
+					this.averageCost += variables[d * J + j] * this.getRequests().get(j).getPacketRate() * cost; 
+				}
+			}
 			
 			// print solution
 			//System.out.println("Lower bound of optimal cost : " + this.optimalCostLowerBound);

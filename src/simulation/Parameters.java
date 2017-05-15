@@ -16,8 +16,7 @@ public class Parameters {
 	
 	// number of servers in a network.
 	public static int K = (int) (numOfNodes * ServerToNodeRatio);
-	
-	public static int K_small = 9; // in geant toplogy.
+	public static int K_small = 9; // in GEANT topology.
 	
 	//public static int maxServersForEachSC = 3; // may vary from 2, 4, 6, 8
 	
