@@ -17,8 +17,11 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 
 import algs.basicrate.ApproSplittableSpecialBR;
 import algs.basicrate.ApproUnSplittableSpecialBR;
+import algs.basicrate.Exact;
 import algs.basicrate.Greedy;
 import algs.basicrate.GreedySplittable;
+import algs.basicrate.Online;
+import algs.basicrate.OnlineGreedy;
 import algs.basicrate.OptimalBR;
 import system.DataCenter;
 import system.InternetLink;
@@ -1309,6 +1312,292 @@ public class SDNRoutingSimulator {
 		SDNRoutingSimulator.logger.info("Running time--------------------------");
 		for (int sizeI = 0; sizeI < switchToDCRatios.length; sizeI ++) {
 			String out = switchToDCRatios[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveRunningTime[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		ThreadContext.remove("threadName");
+	}
+	
+	public static void performanceOnlineNetworkSizesBR() {
+		
+		ThreadContext.put("threadName", "PER-ONLINE-ALL");
+		int [] networkSizes = {50, 100, 150, 200, 250};
+		int numAlgs = 3;
+		
+		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
+		double [][] aveRunningTime = new double [networkSizes.length][numAlgs];
+		double [][] aveNumOfAdmitted = new double [networkSizes.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [networkSizes.length][numAlgs];
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			for (int j = 0; j < numAlgs; j ++) {
+				aveTotalCosts[sizeI][j] = 0d;
+				aveRunningTime[sizeI][j] = 0d;
+				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
+			}
+		}
+		
+		double numRound = 2;
+		
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			
+			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);
+			Parameters.numOfNodes = networkSizes[sizeI];
+			Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
+			
+			for (int round = 0; round < numRound; round ++) {
+				
+				SDNRoutingSimulator.logger.info("Round : " + round);
+				SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+				String postFix = "";
+				if (round > 0) postFix = "-" + round;
+				
+				Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, postFix);
+				Initialization.initDataCenters(simulator, true);
+				Initialization.initEdgeWeights(simulator);
+				
+				Initialization.initUnicastRequests(simulator, false, true, true);
+				
+				// optimal solution for the problem with identical data rates. 
+				Exact optimalAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
+				long startTime = System.currentTimeMillis();
+				optimalAlg.run();			
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][0] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				Online onlineAlg = new Online(simulator, simulator.getUnicastRequests(), 1d);
+				startTime = System.currentTimeMillis();
+				onlineAlg.run();
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (onlineAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (onlineAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (onlineAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				OnlineGreedy greedyAlg = new OnlineGreedy(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				greedyAlg.run();
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+			}
+		}
+		
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalCosts[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
+		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
+			String out = networkSizes[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveRunningTime[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		ThreadContext.remove("threadName");
+	}
+
+	public static void performanceOnlineNumReqsBR(String networkName) {
+		
+		//int [] numOfReqs = {350, 400, 450, 500, 550, 600};
+		int [] numOfReqs = {400, 450, 500, 1000, 1500, 2000};
+		int numAlgs = 2;
+		
+		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
+		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
+		double [][] aveNumOfAdmitted = new double [numOfReqs.length][numAlgs];
+		double [][] aveTotalPktRateOfAdmitted = new double [numOfReqs.length][numAlgs];
+
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			for (int j = 0; j < numAlgs; j ++) {
+				aveTotalCosts[sizeI][j] = 0d;
+				aveRunningTime[sizeI][j] = 0d;
+				aveNumOfAdmitted[sizeI][j] = 0d;
+				aveTotalPktRateOfAdmitted[sizeI][j] = 0d;
+			}
+		}
+		
+		double numRound = 2;
+		//changeNumOfNodes(network_sizes[sizeI]);
+		if (networkName.equals("GEANT")) {
+			Parameters.numOfNodes = 40;
+			ThreadContext.put("threadName", "PER-OnlineGreedy-GEANT");
+		} else if (networkName.equals("AS1755")) {
+			Parameters.numOfNodes = 172;
+			ThreadContext.put("threadName", "PER-OnlineGreedy-AS1755");
+		} else if (networkName.equals("AS4755")) {
+			Parameters.numOfNodes = 121;
+			ThreadContext.put("threadName", "PER-OnlineGreedy-AS4755");
+		}
+		
+		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
+
+		SDNRoutingSimulator simulator = new SDNRoutingSimulator();
+		Initialization.initNetwork(simulator, 0, Parameters.numOfNodes, false, networkName);
+		Initialization.initDataCenters(simulator, true);
+		Initialization.initEdgeWeights(simulator);
+		
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			
+			SDNRoutingSimulator.logger.info("Number of requests in R(t): " + numOfReqs[sizeI]);
+			//Parameters.maxServersForEachSC = numOfReqs[sizeI];
+			Parameters.numReqs = numOfReqs[sizeI];
+			
+			for (int round = 0; round < numRound; round ++) {
+				
+				SDNRoutingSimulator.logger.info("Round : " + round);
+				
+				Initialization.initUnicastRequests(simulator, false, true, true);
+				
+				// optimal solution for the problem with identical data rates. 
+				Exact optimalAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
+				long startTime = System.currentTimeMillis();
+				optimalAlg.run();			
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][0] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				Online onlineAlg = new Online(simulator, simulator.getUnicastRequests(), 1d);
+				startTime = System.currentTimeMillis();
+				onlineAlg.run();
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (onlineAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (onlineAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (onlineAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				OnlineGreedy greedyAlg = new OnlineGreedy(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				greedyAlg.run();
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+			}
+		}
+		
+		SDNRoutingSimulator.logger.info("Num of requests admitted------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveNumOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Throughput------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalPktRateOfAdmitted[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Average cost---------------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
+			for (int j = 0; j < numAlgs; j ++)
+				out += aveTotalCosts[sizeI][j] + " ";
+			
+			SDNRoutingSimulator.logger.info(out);
+		}
+		
+		SDNRoutingSimulator.logger.info("Running time--------------------------");
+		for (int sizeI = 0; sizeI < numOfReqs.length; sizeI ++) {
+			String out = numOfReqs[sizeI] + " ";
 			for (int j = 0; j < numAlgs; j ++)
 				out += aveRunningTime[sizeI][j] + " ";
 			

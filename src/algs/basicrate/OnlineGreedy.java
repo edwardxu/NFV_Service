@@ -23,7 +23,7 @@ public class OnlineGreedy {
 	
 	private double totalPktRateOfAdmittedReqs = 0d;
 
-	public OnlineGreedy (SDNRoutingSimulator sim, ArrayList<Request> requests, double budgetScaleFactor) {
+	public OnlineGreedy (SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		this.setSimulator(sim);	
 		this.setRequests(requests);	
 	}
