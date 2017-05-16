@@ -21,7 +21,6 @@ import algs.basicrate.Exact;
 import algs.basicrate.Greedy;
 import algs.basicrate.GreedySplittable;
 import algs.basicrate.Online;
-import algs.basicrate.OnlineGreedy;
 import algs.basicrate.OnlineGreedyCapDemandRatio;
 import algs.basicrate.OptimalBR;
 import system.DataCenter;
@@ -579,7 +578,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 				
-		double numRound = 2;
+		double numRound = 7;
 		
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			
@@ -1020,7 +1019,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		double numRound = 2;
+		double numRound = 7;
 		
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {		
 			SDNRoutingSimulator.logger.info("Number of nodes: " + networkSizes[sizeI]);

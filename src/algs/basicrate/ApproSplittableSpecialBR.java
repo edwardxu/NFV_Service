@@ -35,7 +35,7 @@ public class ApproSplittableSpecialBR {
 	
 	private double totalPktRateOfAdmittedReqs = 0d;
 	
-	private double epsilon = 0.1; 
+	private double epsilon = 0.05; 
 	
 	public ApproSplittableSpecialBR(SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		
@@ -68,7 +68,6 @@ public class ApproSplittableSpecialBR {
 		}
 		
 		this.simulator.setUnicastRequests(newRequests);
-		
 		this.requests = this.simulator.getUnicastRequests();
 	}
 	
@@ -84,6 +83,7 @@ public class ApproSplittableSpecialBR {
 		
 		Set<Request> admittedReqs = new HashSet<Request>();
 		for (MinCostFlowEdge edge : afterFlowNetwork.edgeSet()) {
+			
 			if ((edge.getSource() instanceof Request) && (edge.getTarget() instanceof ServiceChain)) {
 				if (edge.getFlows() <= 0)
 					continue;
@@ -97,12 +97,15 @@ public class ApproSplittableSpecialBR {
 				
 				admittedReqs.add(req);
 				
-				this.totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * edge.getFlows();
-				this.totalPktRateOfAdmittedReqs += edge.getFlows();
+				this.totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * admittedPacketRate;
+				//this.totalPktRateOfAdmittedReqs += admittedPacketRate;
 			}
 		}
 		
 		this.numOfAdmittedReqs = admittedReqs.size(); 
+		for (Request req : admittedReqs)
+			this.totalPktRateOfAdmittedReqs += req.getPacketRate();
+		
 		this.averageCost = totalCost / this.numOfAdmittedReqs;
 	}
 	

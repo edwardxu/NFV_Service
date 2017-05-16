@@ -87,7 +87,6 @@ public class Greedy {
 				double delay = delay1 + delay2 + dc.getProcessingDelays()[req.getServiceChainType()];
 				double costThisDC = pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()];
 				
-				
 				if (delay < req.getDelayRequirement()) {
 					if (minCost > costThisDC) {
 						minCost = costThisDC; 
