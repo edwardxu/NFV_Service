@@ -49,7 +49,8 @@ public class GreedySplittable {
 		for (Request req : this.requests)
 			toBeAdmittedReqs.put(req, req.getPacketRate());
 
-		Map<Request, Map<DataCenter, Double>> preAdmissions = new HashMap<Request, Map<DataCenter, Double>>();
+		Map<Request, Map<DataCenter, Double>> preAdmissionsPktRate = new HashMap<Request, Map<DataCenter, Double>>();
+		Map<Request, Map<DataCenter, Double>> preAdmissionsCost = new HashMap<Request, Map<DataCenter, Double>>();
 
 		while (!toBeAdmittedReqs.isEmpty()) {
 
@@ -128,14 +129,16 @@ public class GreedySplittable {
 					// reject this request.
 					// check whether this request is partially admitted in other
 					// data centers.
-					if (null != preAdmissions.get(req)) {
-						for (Entry<DataCenter, Double> entryAd : preAdmissions.get(req).entrySet()) {
+					if (null != preAdmissionsCost.get(req)) {
+						for (Entry<DataCenter, Double> entryAd : preAdmissionsCost.get(req).entrySet()) {
 							entryAd.getKey().removeRequest(req, true);
 							this.totalCost -= entryAd.getValue();
+							this.totalPktRateOfAdmittedReqs -= preAdmissionsPktRate.get(req).get(entryAd.getKey());
 						}
 					}
 					admittedReqs.remove(req);
-					preAdmissions.remove(req);
+					preAdmissionsCost.remove(req);
+					preAdmissionsPktRate.remove(req);
 
 					iter.remove();
 					continue;
@@ -150,9 +153,13 @@ public class GreedySplittable {
 					this.totalPktRateOfAdmittedReqs += admittedPacketRate; 
 
 					// preAdmissions.
-					if (null == preAdmissions.get(req))
-						preAdmissions.put(req, new HashMap<DataCenter, Double>());
-					preAdmissions.get(req).put(dcWithMinCost, (minCost * admittedPacketRate));
+					if (null == preAdmissionsCost.get(req)) {
+						preAdmissionsCost.put(req, new HashMap<DataCenter, Double>());
+						preAdmissionsPktRate.put(req, new HashMap<DataCenter, Double>());
+					}
+					preAdmissionsCost.get(req).put(dcWithMinCost, (minCost * admittedPacketRate));
+					preAdmissionsPktRate.get(req).put(dcWithMinCost, admittedPacketRate);
+					
 					if (0 < packetRate - admittedPacketRate) {
 						toBeAdmittedReqs.put(req, packetRate - admittedPacketRate);
 					} else {

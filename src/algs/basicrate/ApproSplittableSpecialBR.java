@@ -98,7 +98,7 @@ public class ApproSplittableSpecialBR {
 				admittedReqs.add(req);
 				
 				this.totalCost += (edge.getCost() + dc.getCosts()[req.getServiceChainType()]) * edge.getFlows();
-				this.totalPktRateOfAdmittedReqs += req.getPacketRate();
+				this.totalPktRateOfAdmittedReqs += edge.getFlows();
 			}
 		}
 		

@@ -579,7 +579,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 				
-		double numRound = 10;
+		double numRound = 2;
 		
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			
@@ -622,7 +622,7 @@ public class SDNRoutingSimulator {
 				
 				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
 				startTime = System.currentTimeMillis();
-				approAlg.run();			
+				approAlg.run();
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
