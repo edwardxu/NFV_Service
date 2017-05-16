@@ -176,8 +176,8 @@ public class Exact {
 			solver.setOutputfile(Parameters.LPOutputFile);
 			
 			solver.setObjFn(objs);
-			//solver.setPresolve(1, 50000);
-			//solver.setScaling(1);//;set_scaling(solver, 1);
+			solver.setPresolve(1, 50000);
+			solver.setScaling(1);//;set_scaling(solver, 1);
 			solver.setMaxim();
 			
 			solver.solve();
@@ -192,12 +192,16 @@ public class Exact {
 			// cost of implementing admitted requests
 			for (int d = 0; d < D; d ++) {
 				for (int j = 0; j < J; j ++) {
-					Pair<Double> delayCostPair = this.getDelayCost(this.getSimulator().getSwitchesAttachedDataCenters().get(d).getAttachedDataCenter(), this.getRequests().get(j)); 
-					Double cost = delayCostPair.getB();
-					this.averageCost += variables[d * J + j] * this.getRequests().get(j).getPacketRate() * cost; 
+					if (variables[d * J + j] > 0) {
+						Pair<Double> delayCostPair = this.getDelayCost(this.getSimulator().getSwitchesAttachedDataCenters().get(d).getAttachedDataCenter(), this.getRequests().get(j)); 
+						Double cost = delayCostPair.getB();
+						if (cost != Double.POSITIVE_INFINITY)
+							this.totalCost += variables[d * J + j] * this.getRequests().get(j).getPacketRate() * cost; 
+					}
 				}
 			}
 			
+			this.averageCost = this.totalCost / this.numOfAdmittedReqs;
 			// print solution
 			//System.out.println("Lower bound of optimal cost : " + this.optimalCostLowerBound);
 			//double[] vars = solver.getPtrVariables();

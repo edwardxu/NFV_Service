@@ -562,7 +562,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "PER-APP-SPLITTABLE-ALL");
 		int [] networkSizes = {50, 100, 150, 200, 250};
 		
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
 		double [][] aveRunningTime = new double [networkSizes.length][numAlgs];
@@ -600,16 +600,35 @@ public class SDNRoutingSimulator {
 				
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				
+				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -625,11 +644,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
-
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -685,7 +703,7 @@ public class SDNRoutingSimulator {
 		//double [] switchToDCRatios = {4, 6, 8, 10};
 		double [] switchToDCRatios = {5, 10, 15, 20};
 
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveRunningTime = new double [switchToDCRatios.length][numAlgs];
@@ -731,17 +749,35 @@ public class SDNRoutingSimulator {
 				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound); 
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// optimal solution for the problem with identical data rates. 
+				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound); 
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -757,10 +793,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -818,7 +854,7 @@ public class SDNRoutingSimulator {
 		//int [] numOfReqs = {1500, 1700, 1900, 2100};
 		int [] numOfReqs = {400, 450, 500, 1000, 1500, 2000};
 
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
@@ -864,17 +900,35 @@ public class SDNRoutingSimulator {
 				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// approximate solution for the problem with identical data rates. 
+				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -890,11 +944,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
-
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -950,7 +1003,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "PER-APP-UNSPLITTABLE-ALL");
 		
 		int [] networkSizes = {50, 100, 150, 200, 250};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
 		double [][] aveRunningTime = new double [networkSizes.length][numAlgs];
@@ -986,16 +1039,35 @@ public class SDNRoutingSimulator {
 				
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				
+				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1011,10 +1083,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1071,7 +1143,7 @@ public class SDNRoutingSimulator {
 		//int [] numOfReqs = {1500, 1700, 1900, 2100};
 		int [] numOfReqs = {400, 450, 500, 1000, 1500, 2000};
 		
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
@@ -1119,17 +1191,35 @@ public class SDNRoutingSimulator {
 				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// approximate solution for the problem with identical data rates. 
+				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1145,10 +1235,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound); 
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound); 
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1204,7 +1294,7 @@ public class SDNRoutingSimulator {
 		//double [] switchToDCRatios = {4, 6, 8, 10};
 		double [] switchToDCRatios = {5, 10, 15, 20};
 		
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [switchToDCRatios.length][numAlgs];
 		double [][] aveRunningTime = new double [switchToDCRatios.length][numAlgs];
@@ -1252,17 +1342,35 @@ public class SDNRoutingSimulator {
 				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// reset 
+				for (Switch sw : simulator.getSwitches())
+					sw.reset();
+				
+				for (InternetLink il : simulator.getNetwork().edgeSet())
+					il.reset();
+				
+				// approximate solution for the problem with identical data rates. 
+				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1278,10 +1386,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1335,8 +1443,8 @@ public class SDNRoutingSimulator {
 	public static void performanceOnlineNetworkSizesBR() {
 		
 		ThreadContext.put("threadName", "PER-ONLINE-ALL");
-		//int [] networkSizes = {50, 100, 150, 200, 250};
-		int [] networkSizes = {50, 100};
+		int [] networkSizes = {50, 100, 150, 200, 250};
+		//int [] networkSizes = {150};
 		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [networkSizes.length][numAlgs];
@@ -1380,7 +1488,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (optimalAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getOptimalThroughput() / numRound);
@@ -1490,7 +1598,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 		
-		double numRound = 2;
+		double numRound = 3;
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
@@ -1529,7 +1637,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (optimalAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getOptimalThroughput() / numRound);
@@ -1746,7 +1854,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "IMPACT-RATIO-APP-SPLITTABLE");
 		
 		double [] numOfDCs = {10, 15, 20, 25, 30};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [numOfDCs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfDCs.length][numAlgs];
@@ -1783,17 +1891,28 @@ public class SDNRoutingSimulator {
 				
 				Initialization.initDataCenters(simulator, true);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// approximate solution for the problem with identical data rates. 
+				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1809,10 +1928,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1867,7 +1986,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "IMPACT-RATIO-APP-UNSPLITTABLE");
 		
 		double [] numOfDCs = {10, 15, 20, 25, 30};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [numOfDCs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfDCs.length][numAlgs];
@@ -1905,17 +2024,28 @@ public class SDNRoutingSimulator {
 				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initDataCenters(simulator, true);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// approximate solution for the problem with identical data rates. 
+				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1931,10 +2061,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -1990,7 +2120,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "IMPACT-RHO-OPT");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] minRhos = {4, 6, 8, 10};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [minRhos.length][numAlgs];
 		double [][] aveRunningTime = new double [minRhos.length][numAlgs];
@@ -2034,17 +2164,28 @@ public class SDNRoutingSimulator {
 				
 				Initialization.initUnicastRequests(simulator, false, true, true);
 				
-				// optimal solution for the problem with identical data rates. 
-				OptimalBR optAlg = new OptimalBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				optAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (optAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (optAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (optAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// optimal solution for the problem with identical data rates. 
+				OptimalBR optAlg = new OptimalBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				optAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (optAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (optAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (optAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -2060,10 +2201,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -2119,7 +2260,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "IMPACT-RHO-APP-SPLITTABLE");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] minRhos = {4, 6, 8, 10};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [minRhos.length][numAlgs];
 		double [][] aveRunningTime = new double [minRhos.length][numAlgs];
@@ -2165,17 +2306,28 @@ public class SDNRoutingSimulator {
 				
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// approximate solution for the problem with identical data rates. 
+				ApproSplittableSpecialBR approAlg = new ApproSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -2191,10 +2343,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -2250,7 +2402,7 @@ public class SDNRoutingSimulator {
 		ThreadContext.put("threadName", "IMPACT-RHO-APP-UNSPLITTABLE");
 		//int [] numOfReqs = {150, 200, 250, 300, 350};
 		double [] minRhos = {4, 6, 8, 10};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [minRhos.length][numAlgs];
 		double [][] aveRunningTime = new double [minRhos.length][numAlgs];
@@ -2294,17 +2446,28 @@ public class SDNRoutingSimulator {
 				SDNRoutingSimulator.logger.info("Round : " + round);
 				Initialization.initUnicastRequests(simulator, false, true, false);
 				
-				// optimal solution for the problem with identical data rates. 
-				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				Exact exactAlg = new Exact(simulator, simulator.getUnicastRequests(), 1d);
 				long startTime = System.currentTimeMillis();
-				approAlg.run();			
+				exactAlg.run();			
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (approAlg.getTotalCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][0] += (approAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][0] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
+				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
+				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
+				
+				// optimal solution for the problem with identical data rates. 
+				ApproUnSplittableSpecialBR approAlg = new ApproUnSplittableSpecialBR(simulator, simulator.getUnicastRequests());
+				startTime = System.currentTimeMillis();
+				approAlg.run();			
+				endTime   = System.currentTimeMillis();
+				totalTime = endTime - startTime;
+				
+				aveTotalCosts[sizeI][1] += (approAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][1] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][1] += (approAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][1] += (approAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
@@ -2320,11 +2483,10 @@ public class SDNRoutingSimulator {
 				endTime   = System.currentTimeMillis();
 				totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][1] += (greedyAlg.getTotalCost() / numRound);					
-				aveRunningTime[sizeI][1] += (totalTime / numRound);
-				aveNumOfAdmitted[sizeI][1] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
-				aveTotalPktRateOfAdmitted[sizeI][1] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
-
+				aveTotalCosts[sizeI][2] += (greedyAlg.getTotalCost() / numRound);					
+				aveRunningTime[sizeI][2] += (totalTime / numRound);
+				aveNumOfAdmitted[sizeI][2] += (greedyAlg.getNumOfAdmittedReqs() / numRound);
+				aveTotalPktRateOfAdmitted[sizeI][2] += (greedyAlg.getTotalPktRateOfAdmittedReqs() / numRound);
 				
 				// reset 
 				for (Switch sw : simulator.getSwitches())
