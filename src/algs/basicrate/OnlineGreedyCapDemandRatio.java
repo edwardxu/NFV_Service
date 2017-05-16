@@ -9,7 +9,7 @@ import system.Request;
 import system.ServiceChain;
 import utils.HTriple;
 
-public class OnlineGreedy {
+public class OnlineGreedyCapDemandRatio {
 
 	private SDNRoutingSimulator simulator = null;
 	
@@ -23,7 +23,7 @@ public class OnlineGreedy {
 	
 	private double totalPktRateOfAdmittedReqs = 0d;
 
-	public OnlineGreedy (SDNRoutingSimulator sim, ArrayList<Request> requests) {
+	public OnlineGreedyCapDemandRatio (SDNRoutingSimulator sim, ArrayList<Request> requests) {
 		this.setSimulator(sim);	
 		this.setRequests(requests);	
 	}
@@ -41,26 +41,30 @@ public class OnlineGreedy {
 			Map<DataCenter, Double> costsForThisReq = retTripleDCListDelays.getC();
 			
 			// admit this request into the data center that achieves the minimum cost. 
-			DataCenter dcMinCost = null; 
-			Double minCost = Double.MAX_VALUE;
+			DataCenter dcMinCapDemandRatio = null; 
+			Double minDemandCapRatio = Double.MAX_VALUE;
 			for (DataCenter dc : dcsMeetDelay) {
-				if (minCost > costsForThisReq.get(dc)) {
-					minCost = costsForThisReq.get(dc);
-					dcMinCost = dc; 
+				
+				double capDemandRatio = dc.getAvailableProcessingRate(dummySC, true);
+				
+				if (minDemandCapRatio > capDemandRatio) {
+					minDemandCapRatio = capDemandRatio;
+					dcMinCapDemandRatio = dc; 
 				}
 			}
 			
-			if (null != dcMinCost) {
+			if (null != dcMinCapDemandRatio) {
 				// admit this request.
-				if (dcMinCost.admitRequest(request, request.getPacketRate(), dummySC, true)) {
+				if (dcMinCapDemandRatio.admitRequest(request, request.getPacketRate(), dummySC, true)) {
 					this.numOfAdmittedReqs ++;
-					this.totalCost += costsForThisReq.get(dcMinCost);
+					this.totalCost += costsForThisReq.get(dcMinCapDemandRatio);
 					this.totalPktRateOfAdmittedReqs += request.getPacketRate();
 				}
 			}
 		}
 		
 		this.averageCost = this.totalCost / this.numOfAdmittedReqs;
+		
 	}
 
 	public SDNRoutingSimulator getSimulator() {

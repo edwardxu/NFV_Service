@@ -22,6 +22,7 @@ import algs.basicrate.Greedy;
 import algs.basicrate.GreedySplittable;
 import algs.basicrate.Online;
 import algs.basicrate.OnlineGreedy;
+import algs.basicrate.OnlineGreedyCapDemandRatio;
 import algs.basicrate.OptimalBR;
 import system.DataCenter;
 import system.InternetLink;
@@ -606,7 +607,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -755,7 +756,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -906,7 +907,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -1045,7 +1046,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -1197,7 +1198,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -1348,7 +1349,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -1488,7 +1489,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (optimalAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getOptimalThroughput() / numRound);
@@ -1519,7 +1520,7 @@ public class SDNRoutingSimulator {
 					il.reset();
 				
 				// optimal solution for the problem with identical data rates. 
-				OnlineGreedy greedyAlg = new OnlineGreedy(simulator, simulator.getUnicastRequests());
+				OnlineGreedyCapDemandRatio greedyAlg = new OnlineGreedyCapDemandRatio(simulator, simulator.getUnicastRequests());
 				startTime = System.currentTimeMillis();
 				greedyAlg.run();
 				endTime   = System.currentTimeMillis();
@@ -1637,7 +1638,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (optimalAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (optimalAlg.getTotalCost() / numRound);			
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (optimalAlg.getNumOfAdmittedReqs() / numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (optimalAlg.getOptimalThroughput() / numRound);
@@ -1668,7 +1669,7 @@ public class SDNRoutingSimulator {
 					il.reset();
 				
 				// optimal solution for the problem with identical data rates. 
-				OnlineGreedy greedyAlg = new OnlineGreedy(simulator, simulator.getUnicastRequests());
+				OnlineGreedyCapDemandRatio greedyAlg = new OnlineGreedyCapDemandRatio(simulator, simulator.getUnicastRequests());
 				startTime = System.currentTimeMillis();
 				greedyAlg.run();
 				endTime   = System.currentTimeMillis();
@@ -1897,7 +1898,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -2030,7 +2031,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -2170,7 +2171,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -2312,7 +2313,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);
@@ -2452,7 +2453,7 @@ public class SDNRoutingSimulator {
 				long endTime   = System.currentTimeMillis();
 				long totalTime = endTime - startTime;
 				
-				aveTotalCosts[sizeI][0] += (exactAlg.getAverageCost() / numRound);					
+				aveTotalCosts[sizeI][0] += (exactAlg.getTotalCost() / numRound);					
 				aveRunningTime[sizeI][0] += (totalTime / numRound);
 				aveNumOfAdmitted[sizeI][0] += (exactAlg.getNumOfAdmittedReqs()/ numRound);
 				aveTotalPktRateOfAdmitted[sizeI][0] += (exactAlg.getOptimalThroughput() / numRound);

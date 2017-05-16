@@ -135,11 +135,12 @@ public class Online {
 					updateDualVariables(request, minShadowPriceDC, Delta, delaysForThisReq.get(minShadowPriceDC), costsForThisReq.get(minShadowPriceDC));
 					this.numOfAdmittedReqs ++;
 					this.totalPktRateOfAdmittedReqs += request.getPacketRate();
-					this.totalCost += costsForThisReq.get(minShadowPriceDC);
-					
+					this.totalCost += (costsForThisReq.get(minShadowPriceDC) * request.getPacketRate());
 				}
 			}
 		}
+		
+		this.averageCost = this.totalCost / this.numOfAdmittedReqs;
 	}
 	
 	private void updateDualVariables(Request request, DataCenter dc, Double Delta, Double delay, Double cost) {
@@ -168,7 +169,7 @@ public class Online {
 	
 	private double calculateDelta() {
 		
-		double maxDelayRhoRatio = -1; 
+		double maxDelayRhoRatio = -1;
 		double maxCost = -1; 
 		for (Request request : this.getRequests()) {
 			// find the data center with the minimum shadow price. 
@@ -206,7 +207,7 @@ public class Online {
 		
 		SimpleWeightedGraph<Node, InternetLink> originalGraph = simulator.getNetwork();
 		
-		for (Switch swDC : simulator.getSwitchesAttachedDataCenters()){
+		for (Switch swDC : simulator.getSwitchesAttachedDataCenters()) {
 			DataCenter dc = swDC.getAttachedDataCenter();
 			
 			Node sourceSwitch = req.getSourceSwitch();
@@ -237,7 +238,7 @@ public class Online {
 			}
 			
 			double delay = delay1 + delay2 + dc.getProcessingDelays()[req.getServiceChainType()];
-			double cost = req.getPacketRate() * (pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()]);
+			double cost = pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()];
 			if (delay < req.getDelayRequirement()) {
 				retDCS.add(dc); 
 				DCDelays.put(dc, delay);

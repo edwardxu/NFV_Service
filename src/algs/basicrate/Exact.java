@@ -47,7 +47,6 @@ public class Exact {
 		
 		//TODO: adjust or refine the budget calculation
 		this.budget = (Parameters.maxLinkCost * (this.simulator.getNetwork().vertexSet().size() - 1) + Parameters.maxServiceChainCost) * Parameters.maxPacketRate * budgetScaleFactor * requests.size();
-			
 	}
 
 	public void run() {
@@ -86,7 +85,7 @@ public class Exact {
 		}
 		
 		double delay = delay1 + delay2 + dc.getProcessingDelays()[req.getServiceChainType()];
-		double cost = req.getPacketRate() * (pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()]);
+		double cost = pathCost1 + pathCost2 + dc.getCosts()[req.getServiceChainType()];
 	
 		return new Pair<Double>(delay, cost);
 	}
@@ -195,7 +194,7 @@ public class Exact {
 					if (variables[d * J + j] > 0) {
 						Pair<Double> delayCostPair = this.getDelayCost(this.getSimulator().getSwitchesAttachedDataCenters().get(d).getAttachedDataCenter(), this.getRequests().get(j)); 
 						Double cost = delayCostPair.getB();
-						if (cost != Double.POSITIVE_INFINITY)
+						if (cost != Double.MAX_VALUE && cost != Double.POSITIVE_INFINITY)
 							this.totalCost += variables[d * J + j] * this.getRequests().get(j).getPacketRate() * cost; 
 					}
 				}
