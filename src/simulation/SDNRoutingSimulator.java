@@ -108,15 +108,15 @@ public class SDNRoutingSimulator {
 			case "IRAU":
 				listOfTasks.add(new Thread(() -> impactOfMinRhoUnSplittableBR(), "IMPACT-RHO-APP-UNSPLITTABLE"));
 				break;
-			case "IDO":
-				listOfTasks.add(new Thread(() -> impactOfDCNumOptimalBR(), "IMPACT-RATIO-OPT"));
-				break; 
-			case "IDAS":
-				listOfTasks.add(new Thread(() -> impactOfDCNumSplittableBR(), "IMPACT-RATIO-APP-SPLITTABLE"));
-				break; 
-			case "IDAU":
-				listOfTasks.add(new Thread(() -> impactOfDCNumUnSplittableBR(), "IMPACT-RATIO-APP-UNSPLITTABLE"));
-				break;
+//			case "IDO":
+//				listOfTasks.add(new Thread(() -> impactOfDCNumOptimalBR(), "IMPACT-RATIO-OPT"));
+//				break; 
+//			case "IDAS":
+//				listOfTasks.add(new Thread(() -> impactOfDCNumSplittableBR(), "IMPACT-RATIO-APP-SPLITTABLE"));
+//				break; 
+//			case "IDAU":
+//				listOfTasks.add(new Thread(() -> impactOfDCNumUnSplittableBR(), "IMPACT-RATIO-APP-UNSPLITTABLE"));
+//				break;
 			case "POnlineA":
 				listOfTasks.add(new Thread(() -> performanceOnlineNetworkSizesBR(), "PER-ONLINE-ALL"));
 				break;
@@ -128,6 +128,7 @@ public class SDNRoutingSimulator {
 				break;
 			case "POnline1755":
 				listOfTasks.add(new Thread(() -> performanceOnlineNumReqsBR("AS1755"), "PER-ONLINE-AS1755"));
+				break;
 			default:
 				System.out.println("Unknown argument: " + arg);
 				System.exit(1);

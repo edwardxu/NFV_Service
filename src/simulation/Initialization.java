@@ -163,8 +163,8 @@ public class Initialization {
 				double delayRequirement = RanNum.getRandomDoubleRange(Parameters.maxDelayRequirement, Parameters.minDelayRequirement);
 				
 				// Step 4L randomly generate the bandwidth resource demand of this request
-				Request multicastReq = new Request(sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
-				reqs.add(multicastReq);
+				Request unicastReq = new Request(sourceSwitch, desSwitches, dataRate, SCType, delayRequirement);
+				reqs.add(unicastReq);
 			} else {
 				// TODO initialize each unicast request from real data. 
 			}
