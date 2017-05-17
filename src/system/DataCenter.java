@@ -68,7 +68,7 @@ public class DataCenter extends Node {
 		} else {
 			double availableRateThisTypeSC = this.getAvailableProcessingRate(sc, basicRate);
 			if (availableRateThisTypeSC < admittedPacketRateReq){
-				SDNRoutingSimulator.logger.info("Error: available computing resource is not enough to admit service chain " + sc.getName());
+				//SDNRoutingSimulator.logger.info("Error: available computing resource is not enough to admit service chain " + sc.getName());
 				return false; 
 			} else {
 				if (null == this.getAdmittedRequestsBR().get(req))

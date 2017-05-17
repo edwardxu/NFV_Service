@@ -185,13 +185,13 @@ public class Exact {
 			
 			// number of admitted requests
 			double [] variables = solver.getPtrVariables();
-			for (int ii = 0; ii < consSize; ii ++ )
+			for (int ii = 0; ii < variables.length; ii ++ )
 				this.numOfAdmittedReqs += variables[ii];
 			
 			// cost of implementing admitted requests
 			for (int d = 0; d < D; d ++) {
 				for (int j = 0; j < J; j ++) {
-					if (variables[d * J + j] > 0) {
+					if ((d * J + j < variables.length ) && (variables[d * J + j] > 0)) {
 						Pair<Double> delayCostPair = this.getDelayCost(this.getSimulator().getSwitchesAttachedDataCenters().get(d).getAttachedDataCenter(), this.getRequests().get(j)); 
 						Double cost = delayCostPair.getB();
 						if (cost != Double.MAX_VALUE && cost != Double.POSITIVE_INFINITY)

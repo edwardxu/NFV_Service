@@ -579,7 +579,7 @@ public class SDNRoutingSimulator {
 			}
 		}
 				
-		double numRound = 7;
+		double numRound = 4;
 		
 		for (int sizeI = 0; sizeI < networkSizes.length; sizeI ++) {
 			
@@ -1583,7 +1583,7 @@ public class SDNRoutingSimulator {
 		
 		//int [] numOfReqs = {350, 400, 450, 500, 550, 600};
 		int [] numOfReqs = {400, 450, 500, 1000, 1500, 2000};
-		int numAlgs = 2;
+		int numAlgs = 3;
 		
 		double [][] aveTotalCosts = new double [numOfReqs.length][numAlgs];
 		double [][] aveRunningTime = new double [numOfReqs.length][numAlgs];
@@ -1603,13 +1603,13 @@ public class SDNRoutingSimulator {
 		//changeNumOfNodes(network_sizes[sizeI]);
 		if (networkName.equals("GEANT")) {
 			Parameters.numOfNodes = 40;
-			ThreadContext.put("threadName", "PER-OnlineGreedy-GEANT");
+			ThreadContext.put("threadName", "PER-ONLINE-GEANT");
 		} else if (networkName.equals("AS1755")) {
 			Parameters.numOfNodes = 172;
-			ThreadContext.put("threadName", "PER-OnlineGreedy-AS1755");
+			ThreadContext.put("threadName", "PER-ONLINE-AS1755");
 		} else if (networkName.equals("AS4755")) {
 			Parameters.numOfNodes = 121;
-			ThreadContext.put("threadName", "PER-OnlineGreedy-AS4755");
+			ThreadContext.put("threadName", "PER-ONLINE-AS4755");
 		}
 		
 		Parameters.K = (int) (Parameters.numOfNodes * Parameters.ServerToNodeRatio);
